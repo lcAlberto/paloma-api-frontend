@@ -22,10 +22,15 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxt/test-utils',
     '@nuxt/scripts',
-    '@nuxt/image'
+    '@nuxt/image',
+    'reka-ui/nuxt',
   ],
 
   css: ['~/assets/css/main.css'],
+  ui: {
+    fonts: false
+    // prefix: 'Nuxt'
+  },
   vite: {
     plugins: [
       tailwindcss(),
