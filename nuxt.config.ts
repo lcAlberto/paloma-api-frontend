@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: '2025-07-15',
@@ -20,6 +22,19 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxt/test-utils',
     '@nuxt/scripts',
-    '@nuxt/image'
-  ]
+    '@nuxt/image',
+    'reka-ui/nuxt',
+  ],
+
+  css: ['~/assets/css/main.css'],
+  ui: {
+    fonts: false
+    // prefix: 'Nuxt'
+  },
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
+
 })
