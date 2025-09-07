@@ -1,14 +1,31 @@
 <template>
-  <div data-theme="cupcake">
-    <p>Some default layout content shared across all pages</p>
-    <slot />
+  <div
+      class="flex"
+      data-theme="cupcake"
+  >
+    <sidebar
+        :is-expanded="isExpanded"
+        @toggle="isExpanded = !isExpanded"
+    />
+    <main class="flex-grow bg-gray-300">
+      <navbar/>
+      <div class="px-8">
+        <breadcrumb/>
+        <slot/>
+      </div>
+    </main>
   </div>
 </template>
 
 <script
-    setup
     lang="ts"
+    setup
 >
+import navbar from '~/components/layout/navbar.vue'
+import Sidebar from "~/components/layout/sidebar.vue";
+import Breadcrumb from "~/components/layout/breadcrumb.vue";
+
+const isExpanded = ref(true);
 
 </script>
 
