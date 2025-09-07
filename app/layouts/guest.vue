@@ -1,13 +1,13 @@
 <template>
   <div class="bg-base-200 min-h-screen bg-[url('/backgrounds/login.jpg')] bg-cover">
     <div class="container fluid mx-auto">
-      <slot />
+      <slot/>
     </div>
   </div>
 </template>
 <script
-    setup
     lang="ts"
+    setup
 >
 
 </script>

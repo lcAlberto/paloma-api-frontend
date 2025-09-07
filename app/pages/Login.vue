@@ -47,9 +47,6 @@
               >
                 Submit
               </UButton>
-              <div @click="testToast">
-                <a class="link link-hover">Forgot password?</a>
-              </div>
             </fieldset>
           </UForm>
         </div>
@@ -64,14 +61,13 @@
 >
 import * as z from 'zod'
 import type {FormSubmitEvent} from "#ui/types";
+import {useAuthStore} from "~/stores/auth";
 
 const router = useRouter();
-const tokenCookie = useCookie('token');
-const {$api} = useNuxtApp();
+const store = useAuthStore();
 
 const schema = z.object({
   email: z.string(),
-  // email: z.string().email('Invalid email'),
   password: z.string().min(4, 'Must be at least 4 characters')
 })
 
@@ -82,26 +78,15 @@ const state = reactive<Partial<Schema>>({
   password: undefined
 })
 
-const errorMessage = ref<string | null>(null)
-
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  try {
-    const response = await $api('/v1/users/login/', {
-      method: 'POST',
-      body: {
-        username: event.data.email,
-        password: event.data.password
-      }
-    });
-    console.log('Login successful:', response);
-    tokenCookie.value = response.access;
-    await router.push('/home');
-  } catch (error: object) {
-    if (error && error.data && error.data.detail) {
-      errorMessage.value = error.data.detail;
-    }
-    console.error('Login failed:', error);
-  }
+  console.log(event);
+  const response = await store.login({
+    username: event.data.email,
+    password: event.data.password
+  })
+  console.log(response);
+  if (response)
+    await router.push('/home')
 }
 
 definePageMeta({
