@@ -1,34 +1,38 @@
-import { $fetch } from 'ofetch';
+import {$fetch} from 'ofetch';
+import {useAuthStore} from '~/stores/auth';
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig();
-  const router = useRouter();
-  const tokenCookie = useCookie<string | null>('token');
-
-  console.log('API Base URL:', config.public.apiBaseUrl);
-  console.log('Tem cookie token:', tokenCookie.value);
+  const runtimeConfig = useRuntimeConfig();
 
   const api = $fetch.create({
-    baseURL: config.public.apiBaseUrl,
-    async onRequest({ options }): Promise<void> {
-      if (tokenCookie.value) {
-        options.headers = options.headers || {};
-        options.headers.Authorization = `Bearer ${tokenCookie.value}`;
+    baseURL: runtimeConfig.public.apiBaseUrl,
+
+    async onRequest({options}) {
+      const authStore = useAuthStore();
+      const token = authStore.token;
+
+      if (token) {
+        options.headers = {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        };
+        console.log('Token adicionado ao header:', token);
       }
     },
-    async onResponseError({ response }) {
-      console.log('é um erro de resposta da api', response);
+
+    async onResponseError({response}) {
       if (response && response.status === 401) {
-        console.error('Unauthorized. Redirecting to login...');
-        tokenCookie.value = null;
-        router.push('/login');
+        console.error('Requisição falhou com status 401 - Unauthorized.');
+        const authStore = useAuthStore();
+        authStore.logout();
+        navigateTo('/login');
       }
-    }
+    },
   });
 
   return {
     provide: {
-      api: api
-    }
+      api: api,
+    },
   };
 });

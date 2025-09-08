@@ -6,10 +6,6 @@ export default defineNuxtRouteMiddleware((to: RouteLocationNormalized) => {
   const isProtectedRoute = to.meta.auth;
   const isLoginPage = to.name === 'login';
 
-  console.log(isProtectedRoute && !token);
-  console.log(isProtectedRoute, token)
-
-
   if (isProtectedRoute && !token) {
     if (!isLoginPage) {
       return navigateTo('/login');

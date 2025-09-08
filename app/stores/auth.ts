@@ -5,7 +5,7 @@ const tokenCookie = useCookie('token');
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as null | { id: number; name: string; email: string },
-    token: null as null | string,
+    token: tokenCookie.value,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -15,20 +15,19 @@ export const useAuthStore = defineStore('auth', {
     async login(user: { username: string; password: string }): Promise<string | null> {
       try {
         const {$api} = useNuxtApp();
-
-        console.log(user)
-
-        const response = await $api('/users/login/', {
+        const response = await $api('/v1/users/login/', {
           method: 'POST',
           body: user,
         });
-        console.log('API Response:', response);
 
-        this.token = response.access;
-        tokenCookie.value = response.access;
+        const token = response.access as string;
+        this.token = token;
+        tokenCookie.value = token;
 
-        return response.access;
+        return token;
       } catch (error) {
+        this.token = null;
+        tokenCookie.value = null;
         console.error('Error during login:', error);
         return null;
       }

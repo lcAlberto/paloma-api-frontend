@@ -79,15 +79,17 @@ const state = reactive<Partial<Schema>>({
 })
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log(event);
-  const response = await store.login({
+  await store.login({
     username: event.data.email,
     password: event.data.password
   })
-  console.log(response);
-  if (response)
-    await router.push('/home')
 }
+
+watch(() => store.token, (newToken) => {
+  if (newToken) {
+    router.push('/home');
+  }
+});
 
 definePageMeta({
   layout: 'guest',
