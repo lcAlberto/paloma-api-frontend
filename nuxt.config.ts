@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     'reka-ui/nuxt',
     '@pinia/nuxt',
+    '@vueuse/nuxt',
   ],
 
   css: ['~/assets/css/main.css'],

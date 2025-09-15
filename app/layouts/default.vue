@@ -1,7 +1,7 @@
 <template>
   <div
       class="flex"
-      data-theme="cupcake"
+      data-theme="corporate"
   >
     <sidebar
         :is-expanded="isExpanded"
