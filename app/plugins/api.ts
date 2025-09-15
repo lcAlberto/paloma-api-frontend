@@ -16,7 +16,6 @@ export default defineNuxtPlugin(() => {
           ...options.headers,
           Authorization: `Bearer ${token}`,
         };
-        console.log('Token adicionado ao header:', token);
       }
     },
 

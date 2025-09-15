@@ -1,55 +1,6 @@
 <template>
   <div class="flex-1 w-full">
-    <div
-        class="collapse p-4 bg-base-200 rounded-b-none rounded-t-xl items-center gap-2"
-    >
-      <input
-          v-model="isOpenFilter"
-          class="peer hidden"
-          type="checkbox"
-      >
-      <div class="collapse-title p-0 bg-primary-100 rounded-t-xl font-medium flex items-center justify-between gap-2">
-        <div class="flex place-items-stretch gap-3 w-1/2">
-          <UInput
-              v-model="filters.identifier"
-              class="input w-full"
-              placeholder="Identificador, brinco"
-          />
-          <USelectMenu
-              v-model="filters.breed"
-              :options="availableBreds"
-              class="select w-full"
-              placeholder="Fazenda"
-          />
-        </div>
-        <button>
-          <UButton
-              :trailing-icon="isOpenFilter ? 'i-heroicons-chevron-up-20-solid' : 'i-heroicons-chevron-down-20-solid'"
-              color="neutral"
-              size="md"
-              variant="ghost"
-              @click="isOpenFilter = !isOpenFilter"
-          >Mais filtros
-          </UButton>
-        </button>
-      </div>
-      <div
-          :class="{ 'hidden': !isOpenFilter }"
-          class="collapse-content flex py-4 px-0 bg-base-200 rounded-t-xl items-center gap-2"
-      >
-        <UInput
-            v-model="filters.identifier"
-            class="input"
-            placeholder="Identificador"
-        />
-        <USelectMenu
-            v-model="filters.breed"
-            :options="availableBreds"
-            class="select"
-            placeholder="Fazenda"
-        />
-      </div>
-    </div>
+    <filters/>
     <UTable
         ref="table"
         v-model:row-selection="rowSelection"
@@ -65,20 +16,31 @@
         sticky
     />
     <div class="flex justify-center pt-4">
-      <UPagination
-          :model-value="pagination.pageIndex + 1"
-          :page-count="pagination.pageSize"
-          :total="store.totalCount"
-          :ui="{
-            root: 'btn btn-sm',
-            ellipsis: 'btn btn-sm',
-            prev: 'btn btn-sm btn-ghost',
-            next: 'btn btn-sm btn-ghost',
-            list: 'btn-group',
-          }"
-          active-color="primary"
-          @update:model-value="updatePageAndFilters"
-      />
+      <div v-if="pagination.per_page >= pagination.total_count">
+        <div class="join">
+          <!--          <input-->
+          <!--              v-for="page in pagination.total_pages"-->
+          <!--              :aria-label="`${page}`"-->
+          <!--              class="join-item btn btn-square"-->
+          <!--              name="options"-->
+          <!--              type="radio"-->
+          <!--              @click="setPagination(page)"-->
+          <!--          >-->
+        </div>
+      </div>
+      <!--      <UPagination-->
+      <!--          :model-page="paginationState.page"-->
+      <!--          :total="store.animalsPagination.total_count"-->
+      <!--          :ui="{-->
+      <!--        root: 'btn btn-sm',-->
+      <!--        ellipsis: 'btn btn-sm',-->
+      <!--        prev: 'btn btn-sm btn-ghost',-->
+      <!--        next: 'btn btn-sm btn-ghost',-->
+      <!--        list: 'btn-group',-->
+      <!--      }"-->
+      <!--          active-color="primary"-->
+      <!--          @update:model-value="updatePage"-->
+      <!--      />-->
     </div>
   </div>
 </template>
@@ -88,60 +50,47 @@
 >
 import type {UTable} from "#components";
 import {useClipboard, useDebounceFn} from '@vueuse/core'
+import Filters from "~/components/animals/filters.vue";
 
 const store = useAnimalStore();
 const route = useRoute();
 const router = useRouter();
 
-const availableBreds = computed(() => store.breeds || []);
-const isOpenFilter = ref(false);
-
 const loading = computed(() => store.loading.fetched || false);
+const pagination = computed(() => store.animalsPagination);
 
 const table = ref<InstanceType<typeof UTable> | null>(null);
 
 const rowSelection = ref({});
 
-const filters = ref({
-  identifier: route.query.identifier || null,
-  name: route.query.name || null,
-  status: route.query.status || null,
-  breed: route.query.breed || null,
-  classification: route.query.classification || null,
-  mother: route.query.mother || null,
-  father: route.query.father || null,
-  sex: route.query.sex || null,
-  born_date_from: route.query.born_date_from || null,
+const paginationState = ref({
+  page: parseInt(route.query.page as string) || 1,
+  pageSize: parseInt(route.query.page_size as string) || 10
 });
 
-const updatePageAndFilters = () => {
-  const newQuery = {
-    page: pagination.value.pageIndex + 1,
-    page_size: pagination.value.pageSize,
-    ...filters.value,
-  };
+const updatePage = (page: number) => {
+  const newQuery = {...route.query, page: page};
   router.push({query: newQuery});
 };
 
-const pagination = ref({
-  pageIndex: parseInt(route.query.page) - 1 || 0,
-  pageSize: parseInt(route.query.page_size) || 10,
-});
-
-const updateUrl = () => {
-  const newQuery = {
-    ...filters.value,
-    page: pagination.value.pageIndex + 1,
-    page_size: pagination.value.pageSize,
-  };
-
-  Object.keys(newQuery).forEach(key => newQuery[key] == null || newQuery[key] === '' && delete newQuery[key]);
-
-  router.push({query: newQuery});
+const fetchAnimals = () => {
+  store.fetchAnimals(route.query);
 };
 
-const debouncedUpdateUrl = useDebounceFn(updateUrl, 500);
+const debouncedFetchAnimals = useDebounceFn(() => {
+  store.fetchAnimals(route.query);
+}, 500);
 
+watch(() => route.query, (newQuery) => {
+  console.log('URL mudou, buscando animais:', newQuery);
+  paginationState.value.page = parseInt(newQuery.page as string) || 1;
+  paginationState.value.pageSize = parseInt(newQuery.page_size as string) || 10;
+  debouncedFetchAnimals();
+}, {deep: true, immediate: true});
+
+onMounted(() => {
+  fetchAnimals();
+});
 
 const columns = [
   {
@@ -289,37 +238,6 @@ const columns = [
     },
   },
 ];
-
-const fetchAnimals = () => {
-  store.fetchAnimals(pagination.value.pageIndex + 1, pagination.value.pageSize);
-};
-
-watch(filters, (newFilters) => {
-  pagination.value.pageIndex = 0;
-  if (newFilters.identifier !== route.query.search) {
-    debouncedUpdateUrl();
-  } else {
-    updateUrl();
-  }
-}, {deep: true});
-
-watch(() => route.query, (newQuery) => {
-  pagination.value.pageIndex = parseInt(newQuery.page) - 1 || 0;
-  pagination.value.pageSize = parseInt(newQuery.page_size) || 10;
-  filters.value.identifier = route.query.identifier;
-  filters.value.name = route.query.name;
-  filters.value.status = route.query.status;
-  filters.value.breed = route.query.breed;
-  filters.value.classification = route.query.classification;
-  filters.value.mother = route.query.mother;
-  filters.value.father = route.query.father;
-
-  store.fetchAnimals(newQuery);
-}, {deep: true, immediate: true});
-
-onMounted(() => {
-  fetchAnimals(route.query);
-});
 </script>
 
 

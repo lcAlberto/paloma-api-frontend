@@ -1,13 +1,30 @@
 import {defineStore} from 'pinia';
 
+interface Pagination {
+  current_page: number,
+  per_page: number,
+  total_count: number,
+  next: number | null,
+  previous: number | null,
+  total_pages: number | null
+}
+
+interface AnimalFilters {
+  identifier: string | null,
+  breed: string | number | null
+}
+
 export const useAnimalStore = defineStore('animal', {
   state: () => ({
     animals: [] as Array<{ id: number; name: string; species: string }>,
-    totalCount: 0,
+    animalsPagination: {} as Pagination,
     breeds: [] as Array<{ id: number; name: string }>,
+    breedsPagination: {} as Pagination,
     loading: {
       fetched: false,
-    }
+      fetchingBreeds: false,
+    },
+    filters: {} as AnimalFilters
   }),
   getters: {
     animalCount: (state) => state.animals.length,
@@ -24,7 +41,7 @@ export const useAnimalStore = defineStore('animal', {
         });
 
         this.animals = response.results;
-        this.totalCount = response.count;
+        this.animalsPagination = response.pagination;
       } catch (error) {
         console.error('Error fetching animals:', error);
       } finally {
@@ -33,15 +50,22 @@ export const useAnimalStore = defineStore('animal', {
     },
     async fetchBreeds() {
       try {
+        this.loading.fetchingBreeds = true;
         const {$api} = useNuxtApp();
 
+        const params = `?page=${this.breedsPagination.current_page}&pageSize=${this.breedsPagination.total_count}`;
         const response = await $api('/breeds/', {
           method: 'GET',
+          params: {params}
         });
 
         this.breeds = response.results;
+        this.breedsPagination = response.pagination;
       } catch (error) {
         console.error('Error fetching breeds:', error);
+        this.loading.fetched = false;
+      } finally {
+        this.loading.fetchingBreeds = false
       }
     },
     async destroyAnimal(id: number) {
@@ -53,7 +77,6 @@ export const useAnimalStore = defineStore('animal', {
         });
 
         this.animals = this.animals.filter(animal => animal.id !== id);
-        this.totalCount -= 1;
       } catch (error) {
         console.error('Error deleting animal:', error);
       }
