@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 w-full">
+  <div class="flex flex-col w-full">
     <filters/>
     <UTable
         ref="table"
@@ -16,31 +16,12 @@
         sticky
     />
     <div class="flex justify-center pt-4">
-      <div v-if="pagination.per_page >= pagination.total_count">
-        <div class="join">
-          <!--          <input-->
-          <!--              v-for="page in pagination.total_pages"-->
-          <!--              :aria-label="`${page}`"-->
-          <!--              class="join-item btn btn-square"-->
-          <!--              name="options"-->
-          <!--              type="radio"-->
-          <!--              @click="setPagination(page)"-->
-          <!--          >-->
-        </div>
+      <div v-if="pagination.total_pages > 1">
+        <default-pagination
+            :pagination="pagination"
+            @update:page="handlePageUpdate"
+        />
       </div>
-      <!--      <UPagination-->
-      <!--          :model-page="paginationState.page"-->
-      <!--          :total="store.animalsPagination.total_count"-->
-      <!--          :ui="{-->
-      <!--        root: 'btn btn-sm',-->
-      <!--        ellipsis: 'btn btn-sm',-->
-      <!--        prev: 'btn btn-sm btn-ghost',-->
-      <!--        next: 'btn btn-sm btn-ghost',-->
-      <!--        list: 'btn-group',-->
-      <!--      }"-->
-      <!--          active-color="primary"-->
-      <!--          @update:model-value="updatePage"-->
-      <!--      />-->
     </div>
   </div>
 </template>
@@ -51,9 +32,10 @@
 import type {UTable} from "#components";
 import {useClipboard, useDebounceFn} from '@vueuse/core'
 import Filters from "~/components/animals/filters.vue";
+import DefaultPagination from "~/components/layout/default-pagination.vue";
+import type {Pagination} from "~/types/PaginationInterface";
 
 const store = useAnimalStore();
-const route = useRoute();
 const router = useRouter();
 
 const loading = computed(() => store.loading.fetched || false);
@@ -63,58 +45,29 @@ const table = ref<InstanceType<typeof UTable> | null>(null);
 
 const rowSelection = ref({});
 
-const paginationState = ref({
-  page: parseInt(route.query.page as string) || 1,
-  pageSize: parseInt(route.query.page_size as string) || 10
-});
+const params = useUrlSearchParams('history');
 
-const updatePage = (page: number) => {
-  const newQuery = {...route.query, page: page};
-  router.push({query: newQuery});
+const handlePageUpdate = (page: number) => {
+  // currentPage.value = page;
+  params.page = String(page);
 };
 
-const fetchAnimals = () => {
-  store.fetchAnimals(route.query);
-};
+watch(params, async (newParams) => {
+  const query = Object.fromEntries(
+      Object.entries(newParams).filter(([key, value]) => value !== null && value !== undefined && value !== '')
+  );
 
-const debouncedFetchAnimals = useDebounceFn(() => {
-  store.fetchAnimals(route.query);
-}, 500);
-
-watch(() => route.query, (newQuery) => {
-  console.log('URL mudou, buscando animais:', newQuery);
-  paginationState.value.page = parseInt(newQuery.page as string) || 1;
-  paginationState.value.pageSize = parseInt(newQuery.page_size as string) || 10;
-  debouncedFetchAnimals();
-}, {deep: true, immediate: true});
+  await store.fetchAnimals(query);
+}, {immediate: true, deep: true});
 
 onMounted(() => {
-  fetchAnimals();
+  store.fetchAnimals();
 });
 
 const columns = [
   {
     accessorKey: 'identifier',
     header: 'Identificador',
-    cell: ({row}) => {
-      const identifier = row.getValue('identifier');
-      const toast = useToast();
-      const {copy} = useClipboard({legacy: true});
-
-      const copyToClipboard = () => {
-        copy(identifier);
-        toast.add({
-          title: 'Identificador copiado!',
-          icon: 'i-heroicons-information-circle',
-          color: 'primary',
-        });
-      };
-
-      return h('div', {
-        class: 'cursor-pointer hover:underline',
-        onClick: copyToClipboard,
-      }, identifier);
-    },
   },
   {
     accessorKey: 'name',
