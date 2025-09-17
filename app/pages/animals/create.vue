@@ -9,7 +9,7 @@
                 class="btn btn-primary"
                 @click="router.back()"
             >
-              New Animal
+              Voltar
             </button>
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>

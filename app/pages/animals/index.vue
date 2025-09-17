@@ -11,13 +11,9 @@
             >
               New Animal
             </button>
-            <!--            <button class="btn btn-primary">New Animal</button>-->
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-          <div class="table-responsive"/>
-          <div class="card-actions justify-end">
-            <!--            <animals-datalist/>-->
-          </div>
+          <animals-datalist/>
         </div>
       </div>
     </div>

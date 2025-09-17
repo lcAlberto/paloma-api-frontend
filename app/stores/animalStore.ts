@@ -1,13 +1,5 @@
 import {defineStore} from 'pinia';
-
-interface Pagination {
-  current_page: number,
-  per_page: number,
-  total_count: number,
-  next: number | null,
-  previous: number | null,
-  total_pages: number | null
-}
+import type {Pagination} from "~/types/PaginationInterface";
 
 interface AnimalFilters {
   identifier: string | null,
@@ -17,12 +9,19 @@ interface AnimalFilters {
 export const useAnimalStore = defineStore('animal', {
   state: () => ({
     animals: [] as Array<{ id: number; name: string; species: string }>,
-    animalsPagination: {} as Pagination,
     breeds: [] as Array<{ id: number; name: string }>,
+    classifications: [] as Array<{ id: number; name: string }>,
+    animalStatus: [] as Array<{ id: number; name: string }>,
+    animalsPagination: {} as Pagination,
     breedsPagination: {} as Pagination,
+    animalStatusPagination: {} as Pagination,
+    classificationPagination: {} as Pagination,
     loading: {
       fetched: false,
       fetchingBreeds: false,
+      fetchingClassifications: false,
+      fetchingStatus: false,
+      fetchingAnimalStatus: false,
     },
     filters: {} as AnimalFilters
   }),
@@ -30,7 +29,7 @@ export const useAnimalStore = defineStore('animal', {
     animalCount: (state) => state.animals.length,
   },
   actions: {
-    async fetchAnimals(params = {}) {
+    async fetchAnimals(params: Record<string, any> = {}) {
       try {
         this.loading.fetched = true;
         const {$api} = useNuxtApp();
@@ -68,6 +67,49 @@ export const useAnimalStore = defineStore('animal', {
         this.loading.fetchingBreeds = false
       }
     },
+
+    async fetchClassifications() {
+      try {
+        this.loading.fetchingClassifications = true;
+        const {$api} = useNuxtApp();
+
+        const params = `?page=${this.classificationPagination.current_page}&pageSize=${this.classificationPagination.total_count}`;
+        const response = await $api('/classifications/', {
+          method: 'GET',
+          params: {params}
+        });
+
+        this.classifications = response.results;
+        this.classificationPagination = response.pagination;
+      } catch (error) {
+        console.error('Error fetching breeds:', error);
+        this.loading.fetched = false;
+      } finally {
+        this.loading.fetchingClassifications = false
+      }
+    },
+
+    async fetchAnimalStatus() {
+      try {
+        this.loading.fetchingAnimalStatus = true;
+        const {$api} = useNuxtApp();
+
+        const params = `?page=${this.animalStatusPagination.current_page}&pageSize=${this.animalStatusPagination.total_count}`;
+        const response = await $api('/statuses/', {
+          method: 'GET',
+          params: {params}
+        });
+
+        this.animalStatus = response.results;
+        this.animalStatusPagination = response.pagination;
+      } catch (error) {
+        console.error('Error fetching breeds:', error);
+        this.loading.fetched = false;
+      } finally {
+        this.loading.fetchingAnimalStatus = false
+      }
+    },
+
     async destroyAnimal(id: number) {
       try {
         const {$api} = useNuxtApp();
