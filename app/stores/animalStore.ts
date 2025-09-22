@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import type {Pagination} from "~/types/PaginationInterface";
+import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 
 interface AnimalFilters {
   identifier: string | null,
@@ -9,19 +10,28 @@ interface AnimalFilters {
 export const useAnimalStore = defineStore('animal', {
   state: () => ({
     animals: [] as Array<{ id: number; name: string; species: string }>,
+    animal: null,
+    mothers: [] as Array<{ id: number; name: string; species: string }>,
+    fathers: [] as Array<{ id: number; name: string; species: string }>,
     breeds: [] as Array<{ id: number; name: string }>,
     classifications: [] as Array<{ id: number; name: string }>,
     animalStatus: [] as Array<{ id: number; name: string }>,
     animalsPagination: {} as Pagination,
+    mothersPagination: {} as Pagination,
+    fathersPagination: {} as Pagination,
     breedsPagination: {} as Pagination,
     animalStatusPagination: {} as Pagination,
     classificationPagination: {} as Pagination,
     loading: {
       fetched: false,
+      fetchingAnimal: false,
       fetchingBreeds: false,
       fetchingClassifications: false,
       fetchingStatus: false,
       fetchingAnimalStatus: false,
+      creatingAnimal: false,
+      editingAnimal: false,
+      deletingAnimal: false,
     },
     filters: {} as AnimalFilters
   }),
@@ -33,6 +43,9 @@ export const useAnimalStore = defineStore('animal', {
       try {
         this.loading.fetched = true;
         const {$api} = useNuxtApp();
+        // TODO: ajustar o pre carregamento do filtro de fazendas. Fazer com que toda vez que se troque uma fazenda, se adicione na url o parâmetro. E depois observe-se esse parâmetro pra fazer o fetch toda vez que mudar a url
+        const authStore = useAuthStore();
+        params.farm = authStore.currentFarm.id
 
         const response = await $api('/animals/', {
           method: 'GET',
@@ -47,6 +60,30 @@ export const useAnimalStore = defineStore('animal', {
         this.loading.fetched = false;
       }
     },
+
+    async fetchParents(option: string) {
+      try {
+        this.loading.fetched = true;
+        const {$api} = useNuxtApp();
+
+        const response = await $api(`/parents/`, {
+          method: 'GET',
+          params: {sex: option}
+        });
+        if (option === 'female') {
+          this.mothers = response.results;
+          this.mothersPagination = response.pagination;
+        } else {
+          this.fathers = response.results;
+          this.fathersPagination = response.pagination;
+        }
+      } catch (error) {
+        console.error('Error fetching parents:', error);
+      } finally {
+        this.loading.fetched = false;
+      }
+    },
+
     async fetchBreeds() {
       try {
         this.loading.fetchingBreeds = true;
@@ -107,6 +144,66 @@ export const useAnimalStore = defineStore('animal', {
         this.loading.fetched = false;
       } finally {
         this.loading.fetchingAnimalStatus = false
+      }
+    },
+
+    async createAnimal(form: AnimalFormInterface) {
+      try {
+        this.loading.creatingAnimal = true
+        const {$api} = useNuxtApp();
+        const authStore = useAuthStore();
+        form.farm_id = authStore.currentFarm?.id
+
+        const response = await $api('/animals/', {
+          method: 'POST',
+          body: {...form}
+        });
+
+        return response
+
+      } catch (error) {
+        console.log('Error creating animals', error);
+      } finally {
+        this.loading.creatingAnimal = false
+      }
+    },
+
+    async editAnimal(id: string | number, form: AnimalFormInterface) {
+      try {
+        this.loading.creatingAnimal = true
+        const {$api} = useNuxtApp();
+        const authStore = useAuthStore();
+        form.farm_id = authStore.currentFarm?.id
+
+        const response = await $api(`/animals/${id}/`, {
+          method: 'PUT',
+          body: {...form}
+        });
+
+        console.log(response);
+
+      } catch (error) {
+        console.log('Error creating animals', error);
+      } finally {
+        this.loading.creatingAnimal = false
+      }
+    },
+
+    async fetchAnimal(id: number | string | null) {
+      try {
+        if (!id)
+          return
+        this.loading.fetchingAnimal = true
+        const {$api} = useNuxtApp();
+
+        this.animal = await $api(`/animals/${id}`, {
+          method: 'GET',
+        });
+
+      } catch (error) {
+        console.log('Error creating animals', error);
+      } finally {
+        this.loading.fetchingAnimal = false
       }
     },
 

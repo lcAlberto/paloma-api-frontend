@@ -23,6 +23,7 @@
     "eslint": "^9.34.0",
     "nuxt": "^4.0.3",
     "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.5.0",
     "reka-ui": "^2.5.0",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2",

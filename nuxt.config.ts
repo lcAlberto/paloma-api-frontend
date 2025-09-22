@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     'reka-ui/nuxt',
     '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@vueuse/nuxt',
   ],
 

@@ -117,7 +117,7 @@ const handleSelection = (event: Event) => {
   if (props.returnObject) {
     emits('update:modelValue', selectedItem);
   } else {
-    emits('update:modelValue', selectedValue);
+    emits('update:modelValue', parseInt(selectedValue));
   }
   internalLoading.value = false
 };

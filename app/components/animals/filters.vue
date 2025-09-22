@@ -116,6 +116,7 @@ const store = useAnimalStore();
 const params = useUrlSearchParams('history');
 
 const queryState = ref({
+  farm: params.farm as string || null,
   identifier: params.identifier as string || null,
   breed: params.breed as string || null,
   classification: params.classification as string || null,
@@ -159,7 +160,6 @@ watch(() => store.animalStatus, (newStatus) => {
   localLogin.value = false
 }, {immediate: true});
 
-// pré-select breed
 const debouncedUpdateUrl = useDebounceFn(() => {
   localLogin.value = true
   params.page = '1';
@@ -201,6 +201,7 @@ const clearFilters = () => {
     classification: null,
     status: null,
     sex: null,
+    farm: null
   };
   params.identifier = ""
   params.breed = ""
