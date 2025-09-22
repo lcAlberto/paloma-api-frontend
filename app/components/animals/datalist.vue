@@ -14,7 +14,20 @@
         }"
         class="flex-1 border border-base-200 rounded-b-xl w-full"
         sticky
-    />
+    >
+      <template #actions-cell="{ row }">
+        <div>
+          <dropdown
+              :options="actionList"
+              option-label="label"
+              option-value="value"
+              placeholder="Ações"
+              position="dropdown-left"
+              @selected="(action) => dispatchAction(action, row.original)"
+          />
+        </div>
+      </template>
+    </UTable>
     <div class="flex justify-center pt-4">
       <div v-if="pagination.total_pages > 1">
         <default-pagination
@@ -34,6 +47,7 @@ import {useClipboard, useDebounceFn} from '@vueuse/core'
 import Filters from "~/components/animals/filters.vue";
 import DefaultPagination from "~/components/layout/default-pagination.vue";
 import type {Pagination} from "~/types/PaginationInterface";
+import Dropdown from "~/components/layout/listagem/dropdown.vue";
 
 const store = useAnimalStore();
 const router = useRouter();
@@ -63,6 +77,22 @@ watch(params, async (newParams) => {
 onMounted(() => {
   store.fetchAnimals();
 });
+
+const actionList = [
+  {value: 'show', label: 'Ficha técnica'},
+  {value: 'delete', label: 'Excluir'},
+]
+
+const dispatchAction = (action: string, item: object) => {
+  switch (action) {
+    case 'show':
+      router.push(`/animals/${item.id}`)
+      break
+    case 'delete':
+      store.destroyAnimal(item.id)
+      break
+  }
+}
 
 const columns = [
   {
@@ -154,41 +184,41 @@ const columns = [
     },
   },
   {
-    key: 'actions',
+    id: 'actions',
     header: 'Ações',
-    cell: ({row}) => {
-      const animalId = row.original.id;
-      const goToDetails = () => {
-        router.push(`/animals/${animalId}`);
-      };
-
-      const deleteAnimal = async () => {
-        await store.destroyAnimal(animalId);
-      };
-      const editButton = h('div', {
-        class: 'inline-block',
-        onClick: goToDetails,
-      }, h('UButton', {
-        icon: 'i-heroicons-pencil-square-20-solid',
-        color: 'gray',
-        variant: 'ghost',
-        label: 'Editar',
-      }));
-
-      const deleteButton = h('div', {
-        class: 'inline-block',
-        onClick: deleteAnimal,
-      }, h('UButton', {
-        icon: 'i-heroicons-trash-20-solid',
-        color: 'red',
-        variant: 'ghost',
-        label: 'Excluir',
-      }));
-
-      return h('div', {
-        class: 'flex items-center gap-2'
-      }, [editButton, deleteButton]);
-    },
+    // cell: ({row}) => {
+    //   const animalId = row.original.id;
+    //   const goToDetails = () => {
+    //     router.push(`/animals/${animalId}`);
+    //   };
+    //
+    //   const deleteAnimal = async () => {
+    //     await store.destroyAnimal(animalId);
+    //   };
+    //   const editButton = h('div', {
+    //     class: 'inline-block',
+    //     onClick: goToDetails,
+    //   }, h('UButton', {
+    //     icon: 'i-heroicons-pencil-square-20-solid',
+    //     color: 'gray',
+    //     variant: 'ghost',
+    //     label: 'Editar',
+    //   }));
+    //
+    //   const deleteButton = h('div', {
+    //     class: 'inline-block',
+    //     onClick: deleteAnimal,
+    //   }, h('UButton', {
+    //     icon: 'i-heroicons-trash-20-solid',
+    //     color: 'red',
+    //     variant: 'ghost',
+    //     label: 'Excluir',
+    //   }));
+    //
+    //   return h('div', {
+    //     class: 'flex items-center gap-2'
+    //   }, [editButton, deleteButton]);
+    // },
   },
 ];
 </script>

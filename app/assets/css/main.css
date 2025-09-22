@@ -3,3 +3,10 @@
 @plugin "daisyui" {
     themes: light --default, dark --prefersdark, cupcake;
 }
+
+/*@theme {*/
+/*    --breakpoint-lg: 50rem;*/
+/*    --breakpoint-xs: 30rem;*/
+/*    --breakpoint-2xl: 100rem;*/
+/*    --breakpoint-3xl: 120rem;*/
+/*}*/

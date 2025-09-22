@@ -10,6 +10,7 @@
     <main class="flex-grow bg-gray-300">
       <navbar/>
       <div class="px-8">
+        <!--      <div class="xl:max-w-3/4 px-8 mx-auto">-->
         <breadcrumb/>
         <slot/>
       </div>

@@ -1,10 +1,7 @@
 <template>
   <div class="navbar bg-base-100 shadow-sm">
     <div class="flex-1">
-      <a class="btn btn-ghost text-xl">
-        <i class="fa-solid fa-wheat-awn"/>
-        Estância Nova
-      </a>
+      <select-farm-navbar/>
     </div>
     <div class="flex-none">
       <div class="dropdown dropdown-end">
@@ -44,6 +41,7 @@
     setup
 >
 
+import SelectFarmNavbar from "~/components/layout/navbar/select-farm-navbar.vue";
 </script>
 
 
