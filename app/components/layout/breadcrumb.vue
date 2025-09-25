@@ -4,7 +4,7 @@
       <div class="card-body px-0 py-4">
         <UBreadcrumb
             :items="items"
-            class="text-base-100"
+            class=""
         />
       </div>
     </div>

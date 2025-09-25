@@ -28,14 +28,10 @@
             option-value="id"
             return-object
         />
-        <UButton
-            :trailing-icon="'i-heroicons-chevron-up-20-solid'"
-            color="neutral"
-            label="Clear"
-            size="md"
-            variant="ghost"
-            @click="clearFilters"
-        />
+        <button class="btn mt-5">
+          Limpar
+          <i class="fa fa-delete-left"/>
+        </button>
       </div>
       <button>
         <UButton

@@ -1,7 +1,7 @@
 <template>
   <div
       :class="isExpanded ? 'w-64' : 'w-20'"
-      class="transition-all duration-300 ease-in-out h-screen bg-gray-800 text-white flex flex-col p-4"
+      class="transition-all duration-300 ease-in-out h-screen bg-primary text-white flex flex-col p-4"
   >
     <div class="flex items-center justify-center p-4">
       <img
@@ -30,10 +30,11 @@
           }"
             :disabled="link?.disabled"
             :to="link?.to || '#'"
-            class="flex items-center p-2 rounded-lg hover:bg-gray-700"
+            active-class="text-primary bg-base-100"
+            class="flex items-center p-2 rounded-lg hover:bg-gray-700 relative"
         >
-          <UIcon
-              :name="link.icon"
+          <i
+              :class="link.icon"
               class="text-xl"
           />
 
@@ -43,21 +44,29 @@
           >{{ link.label }}</span>
           <div
               v-if="link.tag"
-              class="badge badge-sm badge-outline badge-accent mx-2"
+              :class="{'p-0': !isExpanded}"
           >
-            {{ link.tag }}
+            <span
+                v-if="isExpanded"
+                class="badge badge-xs badge-outline badge-accent mx-2"
+            >{{ link.tag }}</span>
+            <i
+                v-else
+                class="fa-solid fa-hourglass text-xs absolute bottom-0 text-accent"
+            />
           </div>
         </NuxtLink>
       </div>
     </nav>
 
     <div class="mt-auto">
-      <UButton
+      <button
           :class="{ 'transform rotate-180': !isExpanded }"
-          class="btn btn-ghost w-full"
-          icon="i-heroicons-chevron-left"
-          @click="$emit('toggle')"
-      />
+          class="btn btn-ghost rounded-xl w-full"
+          @click="emits('toggle')"
+      >
+        <i class="fas fa-chevron-left"/>
+      </button>
     </div>
   </div>
 </template>
@@ -66,34 +75,41 @@
     lang="ts"
     setup
 >
-const props = defineProps<{
-  isExpanded: boolean
-}>();
-const emit = defineEmits<{
-  (e: 'toggle'): void
-}>();
+const props = defineProps({
+  isExpanded: {type: Boolean, required: true}
+})
+
+const emits = defineEmits(['toggle']);
 
 const navigation = ref([
   {
     label: 'Dashboard',
-    icon: 'i-lucide-chart-pie',
+    icon: 'fas fa-chart-area',
     to: '/home',
     can_access: true
   },
   {
     label: 'Animais',
-    icon: 'i-lucide-box',
+    icon: 'fas fa-cow',
     to: '/animals'
   },
   {
     label: 'Ciclos Reprodutivos',
-    icon: 'i-lucide-repeat',
+    icon: 'fas fa-arrows-spin',
     to: '/reproduction',
     can_access: true
   },
   {
     label: 'Tratamentos',
-    icon: 'i-lucide-heart-pulse',
+    icon: 'fas fa-heart-pulse',
+    to: '/health',
+    tag: 'breve',
+    disabled: true,
+    can_access: false
+  },
+  {
+    label: 'Infraestrutura',
+    icon: 'fas fa-tractor',
     to: '/health',
     tag: 'breve',
     disabled: true,
@@ -101,13 +117,13 @@ const navigation = ref([
   },
   {
     label: 'Fazendas',
-    icon: 'i-lucide-user-check',
+    icon: 'fas fa-building-wheat',
     to: '/farms',
     can_access: true
   },
   {
     label: 'Usuários',
-    icon: 'i-lucide-users',
+    icon: 'fas fa-users',
     to: '/users',
     can_access: true
   },

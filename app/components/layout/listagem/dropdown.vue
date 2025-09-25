@@ -3,23 +3,29 @@
       ref="dropdownRef"
       :class="{'dropdown-open': isOpen, [position]: true}"
       class="dropdown"
+      @click="isOpen = !isOpen"
   >
     <div
-        class="btn m-1"
+        :class="buttonClass"
         role="button"
         tabindex="0"
-        @click="isOpen = !isOpen"
     >
       <slot
           :item="selectedItem"
-          name="button-content"
+          name="activator"
       >
-        {{ selectedItem ? getItemLabel(selectedItem) : placeholder }}
+        <span v-if="placeholder">
+          {{ selectedItem ? getItemLabel(selectedItem) : placeholder }}
+        </span>
+        <font-awesome-icon
+            v-if="icon"
+            :icon="icon"
+        />
       </slot>
     </div>
 
     <ul
-        class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-sm drop-shadow-xl"
+        class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-sm drop-shadow-xl/50"
         tabindex="0"
     >
       <li v-if="clearable">
@@ -32,7 +38,15 @@
           v-for="(item, index) in options"
           :key="index"
       >
-        <a @click="handleSelection(item)">
+        <a
+            :class="{'flex-row-reverse': position.includes('left'),}"
+            class="flex"
+            @click="handleSelection(item)"
+        >
+          <FontAwesomeIcon
+              v-if="item.icon"
+              :icon="['fas', item.icon]"
+          />
           {{ getItemLabel(item) }}
         </a>
       </li>
@@ -44,7 +58,8 @@
     lang="ts"
     setup
 >
-import {ref, computed, onMounted, onUnmounted} from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 const props = defineProps({
   modelValue: {type: [Object, String, Number, null], default: null},
@@ -52,7 +67,9 @@ const props = defineProps({
   optionLabel: {type: String, default: 'label'},
   optionValue: {type: String, default: 'value'},
   position: {type: String, default: 'dropdown-left'},
-  placeholder: {type: String, default: 'Selecione um item'},
+  icon: {type: Array, required: false},
+  buttonClass: {type: String, default: 'btn m-1'},
+  placeholder: {type: String, required: false},
   returnObject: {type: Boolean, default: false},
   clearable: {type: Boolean, default: false},
   clearLabel: {type: String, default: 'Todos'},
@@ -96,6 +113,10 @@ const handleSelection = (item: any | null) => {
   }
   isOpen.value = false;
 };
+
+const getPosition = () => {
+  return props.position.replace('dropdow-', '')
+}
 
 const closeDropdown = (event: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {

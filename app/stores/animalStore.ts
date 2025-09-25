@@ -43,7 +43,9 @@ export const useAnimalStore = defineStore('animal', {
       try {
         this.loading.fetched = true;
         const {$api} = useNuxtApp();
-        // TODO: ajustar o pre carregamento do filtro de fazendas. Fazer com que toda vez que se troque uma fazenda, se adicione na url o parâmetro. E depois observe-se esse parâmetro pra fazer o fetch toda vez que mudar a url
+        // TODO: ajustar o pre carregamento do filtro de fazendas. Fazer com que toda vez que se troque uma fazenda,
+        //  se adicione na url o parâmetro. E depois observe-se esse parâmetro pra fazer o fetch toda vez que mudar
+        //  a url
         const authStore = useAuthStore();
         params.farm = authStore.currentFarm.id
 

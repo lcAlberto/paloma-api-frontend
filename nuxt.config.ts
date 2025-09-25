@@ -14,6 +14,7 @@ export default defineNuxtConfig({
 
   plugins: [
     '~/plugins/api',
+    '~/plugins/fontawesome',
   ],
 
   modules: [
@@ -29,7 +30,11 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
   ],
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '@fortawesome/fontawesome-svg-core/styles.css',
+    '@fortawesome/fontawesome-free/css/all.min.css',
+    '~/assets/css/main.css',
+  ],
   ui: {
     fonts: false
     // prefix: 'Nuxt'

@@ -4,17 +4,14 @@
       <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
           <div class="w-full flex justify-between">
-            <h2 class="card-title">Card title!</h2>
-            <button
-                class="btn btn-primary"
-                @click="router.push('/animals/create')"
-            >
-              New Animal
-              <FontAwesomeIcon :icon="['fas', 'plus']"/>
-            </button>
+            <h2 class="card-title">Perfil!</h2>
+            <button class="btn btn-primary">New Cycle</button>
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-          <animals-datalist/>
+          <div class="table-responsive"/>
+          <div class="card-actions justify-end">
+            //
+          </div>
         </div>
       </div>
     </div>
@@ -24,9 +21,9 @@
     lang="ts"
     setup
 >
-import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
-const router = useRouter();
+import type {BreadcrumbItem} from "@nuxt/ui";
+
 const breadcrumbItems: BreadcrumbItem[] = [
   {
     label: 'Home',
@@ -34,14 +31,14 @@ const breadcrumbItems: BreadcrumbItem[] = [
     to: '/home'
   },
   {
-    label: 'Animais',
+    label: 'Personalize seus dados',
     icon: 'i-lucide-box',
-    to: '/animals'
+    to: '/profile'
   }
 ]
 
 definePageMeta({
-  title: 'Animais',
+  title: 'profile',
   breadcrumb: breadcrumbItems,
   auth: true,
 })

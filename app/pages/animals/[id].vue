@@ -9,6 +9,7 @@
                 class="btn btn-outline btn-primary"
                 @click="router.back()"
             >
+              <FontAwesomeIcon :icon="['fas', 'chevron-left']"/>
               Voltar
             </button>
           </div>
@@ -50,6 +51,7 @@
 import {useAnimalStore} from "~/stores/animalStore";
 import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 import type {BreadcrumbItem} from "@nuxt/ui";
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 // import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 
 const router = useRouter();

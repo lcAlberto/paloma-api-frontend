@@ -1,12 +1,14 @@
 import {defineStore} from 'pinia'
 
-const tokenCookie = useCookie('token');
+const accessToken = useCookie('access');
+const refreshToken = useCookie('refresh');
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as null | { id: number; name: string; email: string, farms: object },
+    userTheme: 'light',
     currentFarm: {},
-    token: tokenCookie.value,
+    token: accessToken.value,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -22,24 +24,47 @@ export const useAuthStore = defineStore('auth', {
         });
 
         const token = response.access as string;
+        const refresh = response.refresh as string;
+
         this.user = response.user_data
         if (this.user?.farms && this.user?.farms.length > 0)
           this.currentFarm = this.user.farms[0]
+
         this.token = token;
-        tokenCookie.value = token;
+        accessToken.value = token;
+        refreshToken.value = refresh;
+
+        console.log(token)
 
         return token;
       } catch (error) {
         this.token = null;
-        tokenCookie.value = null;
+        accessToken.value = null;
+        refreshToken.value = null;
         console.error('Error during login:', error);
         return null;
       }
     },
 
-    logout() {
-      this.user = null
-      this.token = null
+    async logout() {
+      try {
+        const {$api} = useNuxtApp();
+        const response = await $api('/v1/users/logout/', {
+          method: 'POST',
+          body: {
+            refresh: refreshToken.value
+          }
+        });
+        console.log(response);
+        this.user = null
+        this.token = null
+        accessToken.value = null
+        refreshToken.value = null
+        const router = useRouter()
+        router.push('/login')
+      } catch (e) {
+        console.error('Error to logout', e);
+      }
     },
   },
   persist: true,

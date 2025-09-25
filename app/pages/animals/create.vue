@@ -9,6 +9,7 @@
                 class="btn btn-outline btn-primary"
                 @click="router.back()"
             >
+              <FontAwesomeIcon :icon="['fas', 'chevron-left']"/>
               Voltar
             </button>
           </div>
@@ -23,17 +24,13 @@
                       class="btn btn-primary"
                       @click="create(fomData)"
                   >
+                    <FontAwesomeIcon :icon="['fas', 'check']"/>
                     Salvar
                   </button>
                 </div>
               </template>
             </animals-animal-form>
           </div>
-          <!--          <div class="card-actions justify-end">-->
-          <!--            <button class="btn btn-primary">-->
-          <!--              Salvar-->
-          <!--            </button>-->
-          <!--          </div>-->
         </div>
       </div>
     </div>
@@ -46,6 +43,7 @@
 import {useAnimalStore} from "~/stores/animalStore";
 import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 import type {BreadcrumbItem} from "@nuxt/ui";
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 const router = useRouter();
 const store = useAnimalStore()

@@ -1,6 +1,8 @@
 <template>
-  <div class="flex flex-col w-full">
-    <filters/>
+  <div class="flex flex-col w-full max-h-[70vh] overflow-y-auto">
+    <div class="">
+      <filters/>
+    </div>
     <UTable
         ref="table"
         v-model:row-selection="rowSelection"
@@ -18,17 +20,17 @@
       <template #actions-cell="{ row }">
         <div>
           <dropdown
+              :icon="['fas', 'fa-ellipsis-vertical']"
               :options="actionList"
               option-label="label"
               option-value="value"
-              placeholder="Ações"
               position="dropdown-left"
               @selected="(action) => dispatchAction(action, row.original)"
           />
         </div>
       </template>
     </UTable>
-    <div class="flex justify-center pt-4">
+    <div class="flex justify-center pt-4 sticky bottom-0 w-full bg-base-100">
       <div v-if="pagination.total_pages > 1">
         <default-pagination
             :pagination="pagination"
@@ -79,8 +81,8 @@ onMounted(() => {
 });
 
 const actionList = [
-  {value: 'show', label: 'Ficha técnica'},
-  {value: 'delete', label: 'Excluir'},
+  {value: 'show', icon: 'fa-list', label: 'Ficha técnica'},
+  {value: 'delete', icon: 'fa-trash', label: 'Excluir'},
 ]
 
 const dispatchAction = (action: string, item: object) => {
