@@ -1,13 +1,13 @@
 <template>
   <div
+      :data-theme="authStore.userTheme"
       class="flex"
-      data-theme="corporate"
   >
     <sidebar
         :is-expanded="isExpanded"
         @toggle="isExpanded = !isExpanded"
     />
-    <main class="flex-grow bg-gray-300">
+    <main class="flex-grow bg-base-300">
       <navbar/>
       <div class="px-8">
         <!--      <div class="xl:max-w-3/4 px-8 mx-auto">-->
@@ -27,6 +27,8 @@ import Sidebar from "~/components/layout/sidebar.vue";
 import Breadcrumb from "~/components/layout/breadcrumb.vue";
 
 const isExpanded = ref(true);
+
+const authStore = useAuthStore();
 
 </script>
 

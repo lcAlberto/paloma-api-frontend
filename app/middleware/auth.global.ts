@@ -1,7 +1,7 @@
 import type {RouteLocationNormalized} from "#vue-router";
 
 export default defineNuxtRouteMiddleware((to: RouteLocationNormalized) => {
-  const token = useCookie('token').value;
+  const token = useCookie('access').value;
 
   const isProtectedRoute = to.meta.auth;
   const isLoginPage = to.name === 'login';
