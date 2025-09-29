@@ -47,9 +47,9 @@
 import type {UTable} from "#components";
 import {useClipboard, useDebounceFn} from '@vueuse/core'
 import Filters from "~/components/animals/filters.vue";
-import DefaultPagination from "~/components/layout/default-pagination.vue";
+import DefaultPagination from "~/components/ui/default-pagination.vue";
 import type {Pagination} from "~/types/PaginationInterface";
-import Dropdown from "~/components/layout/listagem/dropdown.vue";
+import Dropdown from "~/components/ui/listagem/dropdown.vue";
 
 const store = useAnimalStore();
 const router = useRouter();

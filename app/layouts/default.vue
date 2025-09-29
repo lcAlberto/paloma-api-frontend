@@ -22,9 +22,9 @@
     lang="ts"
     setup
 >
-import navbar from '~/components/layout/navbar.vue'
-import Sidebar from "~/components/layout/sidebar.vue";
-import Breadcrumb from "~/components/layout/breadcrumb.vue";
+import navbar from '~/components/ui/navbar.vue'
+import Sidebar from "~/components/ui/sidebar.vue";
+import Breadcrumb from "~/components/ui/breadcrumb.vue";
 
 const isExpanded = ref(true);
 

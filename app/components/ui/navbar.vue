@@ -34,8 +34,8 @@
     setup
 >
 
-import SelectFarmNavbar from "~/components/layout/navbar/select-farm-navbar.vue";
-import Dropdown from "~/components/layout/listagem/dropdown.vue";
+import SelectFarmNavbar from "~/components/ui/navbar/select-farm-navbar.vue";
+import Dropdown from "~/components/ui/listagem/dropdown.vue";
 
 const authStore = useAuthStore();
 

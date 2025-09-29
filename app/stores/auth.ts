@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import {useUiStore} from "~/stores/ui";
 
 const accessToken = useCookie('access');
 const refreshToken = useCookie('refresh');
@@ -16,6 +17,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
 
     async login(user: { username: string; password: string }): Promise<string | null> {
+      const uiStore = useUiStore();
       try {
         const {$api} = useNuxtApp();
         const response = await $api('/v1/users/login/', {
@@ -35,12 +37,19 @@ export const useAuthStore = defineStore('auth', {
         refreshToken.value = refresh;
 
         console.log(token)
+        uiStore.setToast({type: 'success', message: 'Wellcome!', title: 'Success.', delay: 5000});
 
         return token;
       } catch (error) {
         this.token = null;
         accessToken.value = null;
         refreshToken.value = null;
+        uiStore.setToast({
+          type: 'error',
+          message: 'Login failed. Please check your credentials.',
+          title: 'Login failed.',
+          delay: 5000
+        });
         console.error('Error during login:', error);
         return null;
       }

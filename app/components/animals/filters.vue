@@ -106,7 +106,7 @@
     lang="ts"
     setup
 >
-import InputSelect from "~/components/layout/forms/input-select.vue";
+import InputSelect from "~/components/ui/forms/input-select.vue";
 
 const store = useAnimalStore();
 const params = useUrlSearchParams('history');
