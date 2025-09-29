@@ -25,6 +25,7 @@
     setup
 >
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
+import type {BreadcrumbItem} from "@nuxt/ui";
 
 const router = useRouter();
 const breadcrumbItems: BreadcrumbItem[] = [

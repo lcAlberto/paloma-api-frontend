@@ -185,7 +185,7 @@
     lang="ts"
     setup
 >
-import InputSelect from "~/components/layout/forms/input-select.vue";
+import InputSelect from "~/components/ui/forms/input-select.vue";
 import {useAnimalStore} from "~/stores/animalStore";
 
 const store = useAnimalStore()
