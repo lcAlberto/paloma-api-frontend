@@ -38,6 +38,17 @@
         />
       </div>
     </div>
+    <confirm
+        v-model="confirmDelete"
+        :message="`Tem certeza que deseja excluir <b>${animalToDeleteName}</b>? Esta ação não pode ser desfeita.`"
+        cancel-button-icon="fa fa-times"
+        cancel-button-label="Cancelar"
+        confirm-button-icon="fa fa-trash"
+        confirm-button-label="Excluir"
+        title="Confirmação de exclusão"
+        type="error"
+        @confirm="submitDelete"
+    />
   </div>
 </template>
 <script
@@ -50,6 +61,8 @@ import Filters from "~/components/animals/filters.vue";
 import DefaultPagination from "~/components/ui/default-pagination.vue";
 import type {Pagination} from "~/types/PaginationInterface";
 import Dropdown from "~/components/ui/listagem/dropdown.vue";
+import Confirm from "~/components/ui/dialogs/confirm.vue";
+import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 
 const store = useAnimalStore();
 const router = useRouter();
@@ -62,6 +75,10 @@ const table = ref<InstanceType<typeof UTable> | null>(null);
 const rowSelection = ref({});
 
 const params = useUrlSearchParams('history');
+
+const confirmDelete = ref(false);
+const animalToDeleteId = ref<number | null>(null);
+const animalToDeleteName = ref<string>('');
 
 const handlePageUpdate = (page: number) => {
   // currentPage.value = page;
@@ -85,15 +102,25 @@ const actionList = [
   {value: 'delete', icon: 'fa-trash', label: 'Excluir'},
 ]
 
-const dispatchAction = (action: string, item: object) => {
+const dispatchAction = (action: string, animal: AnimalFormInterface) => {
   switch (action) {
     case 'show':
-      router.push(`/animals/${item.id}`)
+      router.push(`/animals/${animal?.id}`)
       break
     case 'delete':
-      store.destroyAnimal(item.id)
+      animalToDeleteId.value = Number(animal.id)
+      animalToDeleteName.value = animal.name || ''
+      confirmDelete.value = true
       break
   }
+}
+
+const submitDelete = async () => {
+  const id = animalToDeleteId.value;
+  if (id)
+    await store.destroyAnimal(id);
+  animalToDeleteId.value = null;
+  animalToDeleteName.value = '';
 }
 
 const columns = [

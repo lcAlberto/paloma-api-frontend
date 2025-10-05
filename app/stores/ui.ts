@@ -1,12 +1,13 @@
 import {defineStore} from "pinia";
+import type {ToastInterface} from "~/types/ToastInterface";
 
 export const useUiStore = defineStore('ui', {
   state: () => ({
-    toasts: [] as ToastConfig[]
+    toasts: [] as ToastInterface[],
   }),
   actions: {
-    setToast(config: Omit<ToastConfig, 'id'>) {
-      const newToast: ToastConfig = {
+    setToast(config: Omit<ToastInterface, 'id'>) {
+      const newToast: ToastInterface = {
         id: Date.now() + Math.random(),
         ...config
       };
@@ -19,16 +20,3 @@ export const useUiStore = defineStore('ui', {
     },
   },
 });
-
-
-export interface ToastConfig {
-  id: number;
-  type: 'success' | 'error' | 'warning' | 'info' | 'default' | 'primary' | 'secondary' | 'light' | 'dark' | 'neutral';
-  message: string;
-  title: string | null;
-  delay?: number | null;
-  icon?: string | null;
-  closable?: boolean | null;
-  soft?: boolean | null;
-  outline?: boolean | null;
-}

@@ -40,6 +40,7 @@ export const useAnimalStore = defineStore('animal', {
   },
   actions: {
     async fetchAnimals(params: Record<string, any> = {}) {
+      const uiStore = useUiStore();
       try {
         this.loading.fetched = true;
         const {$api} = useNuxtApp();
@@ -57,6 +58,7 @@ export const useAnimalStore = defineStore('animal', {
         this.animals = response.results;
         this.animalsPagination = response.pagination;
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch animals.', title: 'Error.', delay: 5000});
         console.error('Error fetching animals:', error);
       } finally {
         this.loading.fetched = false;
@@ -64,6 +66,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async fetchParents(option: string) {
+      const uiStore = useUiStore();
       try {
         this.loading.fetched = true;
         const {$api} = useNuxtApp();
@@ -80,6 +83,7 @@ export const useAnimalStore = defineStore('animal', {
           this.fathersPagination = response.pagination;
         }
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch parents.', title: 'Error.', delay: 5000});
         console.error('Error fetching parents:', error);
       } finally {
         this.loading.fetched = false;
@@ -87,6 +91,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async fetchBreeds() {
+      const uiStore = useUiStore();
       try {
         this.loading.fetchingBreeds = true;
         const {$api} = useNuxtApp();
@@ -100,6 +105,7 @@ export const useAnimalStore = defineStore('animal', {
         this.breeds = response.results;
         this.breedsPagination = response.pagination;
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch breeds.', title: 'Error.', delay: 5000});
         console.error('Error fetching breeds:', error);
         this.loading.fetched = false;
       } finally {
@@ -108,6 +114,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async fetchClassifications() {
+      const uiStore = useUiStore();
       try {
         this.loading.fetchingClassifications = true;
         const {$api} = useNuxtApp();
@@ -121,6 +128,7 @@ export const useAnimalStore = defineStore('animal', {
         this.classifications = response.results;
         this.classificationPagination = response.pagination;
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch classifications.', title: 'Error.', delay: 5000});
         console.error('Error fetching breeds:', error);
         this.loading.fetched = false;
       } finally {
@@ -129,6 +137,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async fetchAnimalStatus() {
+      const uiStore = useUiStore();
       try {
         this.loading.fetchingAnimalStatus = true;
         const {$api} = useNuxtApp();
@@ -142,6 +151,7 @@ export const useAnimalStore = defineStore('animal', {
         this.animalStatus = response.results;
         this.animalStatusPagination = response.pagination;
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch animal status.', title: 'Error.', delay: 5000});
         console.error('Error fetching breeds:', error);
         this.loading.fetched = false;
       } finally {
@@ -150,20 +160,19 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async createAnimal(form: AnimalFormInterface) {
+      const uiStore = useUiStore();
       try {
         this.loading.creatingAnimal = true
         const {$api} = useNuxtApp();
         const authStore = useAuthStore();
         form.farm_id = authStore.currentFarm?.id
 
-        const response = await $api('/animals/', {
+        return await $api('/animals/', {
           method: 'POST',
           body: {...form}
-        });
-
-        return response
-
+        })
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to create animal.', title: 'Error.', delay: 5000});
         console.log('Error creating animals', error);
       } finally {
         this.loading.creatingAnimal = false
@@ -171,20 +180,19 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async editAnimal(id: string | number, form: AnimalFormInterface) {
+      const uiStore = useUiStore();
       try {
         this.loading.creatingAnimal = true
         const {$api} = useNuxtApp();
         const authStore = useAuthStore();
         form.farm_id = authStore.currentFarm?.id
 
-        const response = await $api(`/animals/${id}/`, {
+        return await $api(`/animals/${id}/`, {
           method: 'PUT',
           body: {...form}
-        });
-
-        console.log(response);
-
+        })
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to update animal.', title: 'Error.', delay: 5000});
         console.log('Error creating animals', error);
       } finally {
         this.loading.creatingAnimal = false
@@ -192,6 +200,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async fetchAnimal(id: number | string | null) {
+      const uiStore = useUiStore();
       try {
         if (!id)
           return
@@ -203,6 +212,7 @@ export const useAnimalStore = defineStore('animal', {
         });
 
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to fetch animal details.', title: 'Error.', delay: 5000});
         console.log('Error creating animals', error);
       } finally {
         this.loading.fetchingAnimal = false
@@ -210,6 +220,7 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async destroyAnimal(id: number) {
+      const uiStore = useUiStore();
       try {
         const {$api} = useNuxtApp();
 
@@ -218,7 +229,9 @@ export const useAnimalStore = defineStore('animal', {
         });
 
         this.animals = this.animals.filter(animal => animal.id !== id);
+        uiStore.setToast({type: 'success', message: 'Animal deleted successfully.', title: 'Success.', delay: 5000});
       } catch (error) {
+        uiStore.setToast({type: 'error', message: 'Failed to delete animal.', title: 'Error.', delay: 5000});
         console.error('Error deleting animal:', error);
       }
     }

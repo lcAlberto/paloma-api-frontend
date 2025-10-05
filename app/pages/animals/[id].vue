@@ -23,10 +23,16 @@
                 <div
                     class="flex flex-col md:flex-row justify-end gap-5"
                 >
-                  <button class="btn btn-warning">
+                  <button
+                      v-if="false"
+                      class="btn btn-warning"
+                  >
                     Desativar
                   </button>
-                  <button class="btn btn-error">
+                  <button
+                      class="btn btn-error"
+                      @click="confirmDelete = true"
+                  >
                     Deletar
                   </button>
                   <button
@@ -42,6 +48,17 @@
         </div>
       </div>
     </div>
+    <confirm
+        v-model="confirmDelete"
+        :message="`Tem certeza que deseja excluir <b>${store.animal.name}</b>? Esta ação não pode ser desfeita.`"
+        cancel-button-icon="fa fa-times"
+        cancel-button-label="Cancelar"
+        confirm-button-icon="fa fa-trash"
+        confirm-button-label="Excluir"
+        title="Confirmação de exclusão"
+        type="error"
+        @confirm="submitDelete"
+    />
   </div>
 </template>
 <script
@@ -52,19 +69,32 @@ import {useAnimalStore} from "~/stores/animalStore";
 import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 import type {BreadcrumbItem} from "@nuxt/ui";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
+import Confirm from "~/components/ui/dialogs/confirm.vue";
 // import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 
 const router = useRouter();
 const route = useRoute();
 const store = useAnimalStore()
+const uiStore = useUiStore();
 
 const animal_id = ref('')
+const confirmDelete = ref(false)
 
 const edit = async (formData: AnimalFormInterface) => {
-  console.log(animal_id.value, route.params.id);
   if (animal_id.value.length === 0)
     return
-  await store.editAnimal(animal_id.value, formData)
+  const response = await store.editAnimal(animal_id.value, formData)
+  if (response) {
+    uiStore.setToast({type: 'success', message: 'Animal created successfully.', title: 'Success.', delay: 5000});
+    await router.push('/animals/')
+  }
+}
+
+const submitDelete = async () => {
+  if (animal_id.value.length === 0)
+    return
+  await store.destroyAnimal(int(animal_id.value))
+  await router.push('/animals/')
 }
 
 onMounted(() => {

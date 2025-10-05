@@ -9,13 +9,6 @@
           :key="toast.id"
           :toast="toast"
       />
-      <button
-          v-if="true"
-          class="btn btn-primary"
-          @click="openToast()"
-      >
-        Open Toast
-      </button>
     </div>
   </NuxtLayout>
 </template>
@@ -23,7 +16,7 @@
     lang="ts"
     setup
 >
-import Toast from "~/components/ui/toast.vue";
+import Toast from "~/components/ui/dialogs/toast.vue";
 import {useUiStore} from '~/stores/ui';
 
 const uiStore = useUiStore();

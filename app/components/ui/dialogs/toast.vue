@@ -36,6 +36,8 @@
     lang="ts"
     setup
 >
+import type {ToastInterface} from "~/types/ToastInterface";
+
 const props = defineProps({
   type: {
     type: String,
@@ -46,7 +48,7 @@ const props = defineProps({
   timeout: {type: Number, default: 5},
   icon: {type: String, default: 'fa fa-info'},
   id: {type: Number, required: true},
-  toast: {type: Object as () => ToastConfig, required: true},
+  toast: {type: Object as () => ToastInterface, required: true},
 });
 
 const uiStore = useUiStore();
