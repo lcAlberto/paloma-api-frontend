@@ -1,4 +1,5 @@
 export interface AnimalFormInterface {
+  id: number | string | null,
   identifier: string | null,
   name: string | null,
   sex: boolean | null,

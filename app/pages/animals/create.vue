@@ -47,11 +47,14 @@ import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 
 const router = useRouter();
 const store = useAnimalStore()
+const uiStore = useUiStore();
 
 const create = async (formData: AnimalFormInterface) => {
   const response = await store.createAnimal(formData)
-  if (response)
+  if (response) {
+    uiStore.setToast({type: 'success', message: 'Animal created successfully.', title: 'Success.', delay: 5000});
     await router.push('/animals/')
+  }
 }
 
 const breadcrumbItems: BreadcrumbItem[] = [

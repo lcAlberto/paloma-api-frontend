@@ -4,7 +4,7 @@
       <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
           <div class="w-full flex justify-between">
-            <h2 class="card-title">Card title!</h2>
+            <h2 class="card-title">Rebanho</h2>
             <button
                 class="btn btn-primary"
                 @click="router.push('/animals/create')"
