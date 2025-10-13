@@ -27,10 +27,7 @@
         />
         {{ title }}
       </h3>
-      <p
-          class="py-4"
-          v-html="message"
-      />
+      <p class="py-4">{{ message }}</p>
       <div class="modal-action">
         <button
             class="btn"

@@ -25,6 +25,7 @@ export const useAnimalStore = defineStore('animal', {
     loading: {
       fetched: false,
       fetchingAnimal: false,
+      fetchingParents: false,
       fetchingBreeds: false,
       fetchingClassifications: false,
       fetchingStatus: false,
@@ -68,7 +69,7 @@ export const useAnimalStore = defineStore('animal', {
     async fetchParents(option: string) {
       const uiStore = useUiStore();
       try {
-        this.loading.fetched = true;
+        this.loading.fetchingParents = true;
         const {$api} = useNuxtApp();
 
         const response = await $api(`/parents/`, {
@@ -86,7 +87,7 @@ export const useAnimalStore = defineStore('animal', {
         uiStore.setToast({type: 'error', message: 'Failed to fetch parents.', title: 'Error.', delay: 5000});
         console.error('Error fetching parents:', error);
       } finally {
-        this.loading.fetched = false;
+        this.loading.fetchingParents = false;
       }
     },
 

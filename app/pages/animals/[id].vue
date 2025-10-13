@@ -50,12 +50,12 @@
     </div>
     <confirm
         v-model="confirmDelete"
-        :message="`Tem certeza que deseja excluir <b>${store.animal.name}</b>? Esta ação não pode ser desfeita.`"
+        :message="`Tem certeza que deseja excluir ${animal.name}? Esta ação não pode ser desfeita.`"
+        :title="`Confirmação de exclusão de ${animal.name}`"
         cancel-button-icon="fa fa-times"
         cancel-button-label="Cancelar"
         confirm-button-icon="fa fa-trash"
         confirm-button-label="Excluir"
-        title="Confirmação de exclusão"
         type="error"
         @confirm="submitDelete"
     />
@@ -78,6 +78,7 @@ const store = useAnimalStore()
 const uiStore = useUiStore();
 
 const animal_id = ref('')
+const animal = computed(() => store.animal)
 const confirmDelete = ref(false)
 
 const edit = async (formData: AnimalFormInterface) => {
@@ -93,7 +94,7 @@ const edit = async (formData: AnimalFormInterface) => {
 const submitDelete = async () => {
   if (animal_id.value.length === 0)
     return
-  await store.destroyAnimal(int(animal_id.value))
+  await store.destroyAnimal(parseInt(animal_id.value))
   await router.push('/animals/')
 }
 
@@ -101,7 +102,6 @@ onMounted(() => {
   animal_id.value = route.params.id as string;
   if (animal_id.value) {
     store.fetchAnimal(animal_id.value);
-    // router.push('/animals/')
   }
 });
 const breadcrumbItems: BreadcrumbItem[] = [
