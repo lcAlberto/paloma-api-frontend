@@ -1,22 +1,29 @@
 <template>
-  <div
-      class="collapse p-4 bg-base-200 rounded-b-none rounded-t-xl items-center gap-2"
-  >
+  <div class="collapse p-4 bg-base-200 rounded-b-none rounded-t-xl items-center gap-2 overflow-visible">
     <input
         v-model="isOpenFilter"
         class="peer hidden"
         type="checkbox"
     >
     <div class="collapse-title p-0 bg-primary-100 rounded-t-xl font-medium flex items-center justify-between gap-2">
-      <div class="flex place-items-center gap-3 w-1/2">
-        <div class="flex flex-col items-ce align-items-end w-full">
-          <label class="label">Identificador</label>
-          <input
-              v-model="queryState.identifier"
-              class="input w-full"
-              placeholder="Identificador, brinco"
-              type="text"
-          >
+      <div
+          class="flex place-items-center gap-3 xl:w-1/2"
+      >
+        <div class="min-w-fit flex flex-col items-ce align-items-end w-full">
+          <input-date-range
+              v-model="queryState.predictedCalvingDate"
+              :loading="localLogin"
+              class="!overflow-visible"
+              label="Parto Previsto"
+          />
+        </div>
+        <div class="min-w-fit flex flex-col items-ce align-items-end w-full">
+          <input-date-range
+              v-model="queryState.actualCalvingDate"
+              :loading="localLogin"
+              class="!overflow-visible"
+              label="Cobertura"
+          />
         </div>
         <input-select
             v-model="queryState.femaleAnimal"
@@ -51,7 +58,15 @@
         :class="{ 'hidden': !isOpenFilter }"
         class="collapse-content flex py-4 px-0 bg-base-200 rounded-t-xl items-center gap-2"
     >
-      <div class="grid grid-cols-3 content-center gap-3 w-full">
+      <div class="grid md:grid-cols-5 content-center gap-3 w-full">
+        <div class="min-w-fit flex flex-col items-ce align-items-end w-full">
+          <input-date-range
+              v-model="queryState.matingDate"
+              :loading="localLogin"
+              class="!overflow-visible"
+              label="Data do parto"
+          />
+        </div>
         <input-select
             v-model="queryState.maleAnimal"
             :items="animalStore.fathers"
@@ -62,45 +77,55 @@
             option-value="id"
             return-object
         />
-        <!--        <input-select-->
-        <!--            v-model="queryState.status"-->
-        <!--            :items="store.animalStatus"-->
-        <!--            :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"-->
-        <!--            clearable-->
-        <!--            label="Status"-->
-        <!--            option-label="name"-->
-        <!--            option-value="id"-->
-        <!--            return-object-->
-        <!--        />-->
-        <!--        <div>-->
-        <!--          <label class="label">Sexo</label>-->
-        <!--          <div class="filter flex w-full">-->
-        <!--            <input-->
-        <!--                v-model="queryState.sex"-->
-        <!--                :value="undefined"-->
-        <!--                aria-label="All"-->
-        <!--                class="btn filter-reset"-->
-        <!--                name="sex"-->
-        <!--                type="radio"-->
-        <!--            >-->
-        <!--            <input-->
-        <!--                v-model="queryState.sex"-->
-        <!--                aria-label="Macho"-->
-        <!--                class="btn"-->
-        <!--                name="sex"-->
-        <!--                type="radio"-->
-        <!--                value="male"-->
-        <!--            >-->
-        <!--            <input-->
-        <!--                v-model="queryState.sex"-->
-        <!--                aria-label="Fêmea"-->
-        <!--                class="btn"-->
-        <!--                name="sex"-->
-        <!--                type="radio"-->
-        <!--                value="female"-->
-        <!--            >-->
-        <!--          </div>-->
-        <!--        </div>-->
+        <input-select
+            v-model="queryState.calf"
+            :items="animalStore.animals"
+            :loading="animalStore.loading.fetched || localLogin"
+            clearable
+            label="Bezerro"
+            option-label="name"
+            option-value="id"
+            return-object
+        />
+        <input-select
+            v-model="queryState.status"
+            :items="availableStatus"
+            :loading="localLogin"
+            clearable
+            label="Status"
+            option-label="name"
+            option-value="value"
+            return-object
+        />
+        <div>
+          <label class="label">Tipo</label>
+          <div class="filter flex w-full">
+            <input
+                v-model="queryState.matingType"
+                :value="undefined"
+                aria-label="All"
+                class="btn filter-reset"
+                name="sex"
+                type="radio"
+            >
+            <input
+                v-model="queryState.matingType"
+                aria-label="Natural"
+                class="btn"
+                name="sex"
+                type="radio"
+                value="natural"
+            >
+            <input
+                v-model="queryState.matingType"
+                aria-label="Inseminação Artificial"
+                class="btn"
+                name="sex"
+                type="radio"
+                value="artificial"
+            >
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -110,27 +135,44 @@
     setup
 >
 import InputSelect from "~/components/ui/forms/input-select.vue";
+import InputDateRange from "~/components/ui/forms/date/input-date-range.vue";
 
 const store = useReproductionStore();
 const animalStore = useAnimalStore();
 const params = useUrlSearchParams('history');
 
+const parseDateRange = (dateString: string | string[] | null) => {
+  const str = Array.isArray(dateString) ? dateString[0] : dateString;
+  if (str && str.includes(',')) {
+    const [startDate, endDate] = str.split(',');
+    return {startDate, endDate};
+  }
+  return {startDate: null, endDate: null};
+};
 const queryState = ref({
   farm: params.farm as string || null,
-  identifier: params.identifier as string || null,
+  // identifier: params.identifier as string || null,
   maleAnimal: params.male_animal as string || null,
   femaleAnimal: params.female_animal as string || null,
+  calf: params.calf as string || null,
   status: params.status as string || null,
   matingType: params.mating_type as string || null,
-  matingDate: params.mating_date as string || null,
-  predictedCalvingDate: params.predicted_calving_date as string || null,
-  actualCalvingDate: params.actual_calving_date as string || null,
+  matingDate: parseDateRange(params.mating_date || null),
+  predictedCalvingDate: parseDateRange(params.predicted_calving_date || null),
+  actualCalvingDate: parseDateRange(params.actual_calving_date || null),
+  // hasCalf não está no template, mas mantive a lógica
   hasCalf: params.has_calf as string || null,
-  // calf: params.calf as string || null,
 });
 
 const isOpenFilter = ref(false);
 const localLogin = ref(false);
+const availableStatus = [
+  {value: 'active', name: 'Active'},
+  {value: 'calved', name: 'Calved'},
+  {value: 'failed', name: 'Failed'},
+  {value: 'aborted', name: 'Aborted'},
+  {value: 'pending', name: 'Pending Confirmation'},
+]
 
 watch(() => animalStore.mothers, (newMothers) => {
   localLogin.value = true
@@ -154,66 +196,94 @@ watch(() => animalStore.fathers, (newFathers) => {
   localLogin.value = false
 }, {immediate: true});
 
-// watch(() => store.classifications, (newClassification) => {
-//   localLogin.value = true
-//   if (queryState.value.classification && newClassification.length > 0) {
-//     const foundClassification = newClassification.find(b => b.id.toString() === queryState.value.classification);
-//     if (foundClassification) {
-//       queryState.value.classification = foundClassification;
-//     }
-//   }
-//   localLogin.value = false
-// }, {immediate: true});
+watch(() => animalStore.animals, (newAnimals) => {
+  localLogin.value = true
+  if (queryState.value.calf && newAnimals.length > 0) {
+    const foundCalf = newAnimals.find(animal => animal.id.toString() === queryState.value.calf);
+    if (foundCalf) {
+      queryState.value.calf = foundCalf;
+    }
+  }
+  localLogin.value = false
+}, {immediate: true});
 
-// watch(() => store.animalStatus, (newStatus) => {
-//   localLogin.value = true
-//   if (queryState.value.status && newStatus.length > 0) {
-//     const foundClassification = newStatus.find(b => b.id.toString() === queryState.value.status);
-//     if (foundClassification) {
-//       queryState.value.status = foundClassification;
-//     }
-//   }
-//   localLogin.value = false
-// }, {immediate: true});
+watch(() => availableStatus, (newStatusList) => {
+  localLogin.value = true
+  if (queryState.value.status && newStatusList.length > 0) {
+    const foundStatus = newStatusList.find(s => s.value === queryState.value.status);
+    if (foundStatus) {
+      queryState.value.status = foundStatus;
+    }
+  }
+  localLogin.value = false
+}, {immediate: true});
 
 const debouncedUpdateUrl = useDebounceFn(() => {
   localLogin.value = true
   params.page = '1';
 
-  if (queryState.value.identifier) {
-    params.identifier = queryState.value.identifier;
+  const setDateRangeParam = (key: string, dateRange: any) => {
+    if (dateRange.startDate && dateRange.endDate) {
+      params[key] = `${dateRange.startDate},${dateRange.endDate}`;
+    } else {
+      delete params[key];
+    }
+  };
+
+  const setSelectObjectParam = (key: string, value: any, prop: string = 'id') => {
+    if (value && value[prop]) {
+      params[key] = String(value[prop]);
+    } else {
+      delete params[key];
+    }
+  };
+
+  // if (queryState.value.identifier) {
+  //   params.identifier = queryState.value.identifier;
+  // } else {
+  //   delete params.identifier;
+  // }
+
+  setSelectObjectParam('female_animal', queryState.value.femaleAnimal);
+  setSelectObjectParam('male_animal', queryState.value.maleAnimal);
+  setSelectObjectParam('calf', queryState.value.calf);
+  setSelectObjectParam('status', queryState.value.status, 'value');
+  if (queryState.value.matingType) {
+    params.mating_type = queryState.value.matingType;
   } else {
-    delete params.identifier;
+    delete params.mating_type;
   }
 
-  if (queryState.value.femaleAnimal && queryState.value.femaleAnimal.id) {
-    params.female_animal = String(queryState.value.femaleAnimal.id);
+  setDateRangeParam('predicted_calving_date', queryState.value.predictedCalvingDate);
+  setDateRangeParam('actual_calving_date', queryState.value.actualCalvingDate);
+  setDateRangeParam('mating_date', queryState.value.matingDate);
+  if (queryState.value.hasCalf) {
+    params.has_calf = queryState.value.hasCalf;
   } else {
-    delete params.female_animal;
+    delete params.has_calf;
   }
-  if (queryState.value.maleAnimal && queryState.value.maleAnimal.id) {
-    params.male_animal = String(queryState.value.maleAnimal.id);
-  } else {
-    delete params.male_animal;
-  }
+
   localLogin.value = false
 }, 500);
 
 const clearFilters = () => {
   queryState.value = {
+    farm: queryState.value.farm || null,
     identifier: null,
     maleAnimal: null,
     femaleAnimal: null,
+    calf: null, // NOVO
     status: null,
     matingType: null,
-    matingDate: null,
-    predictedCalvingDate: null,
-    actualCalvingDate: null,
+    matingDate: {startDate: null, endDate: null},
+    predictedCalvingDate: {startDate: null, endDate: null},
+    actualCalvingDate: {startDate: null, endDate: null},
     hasCalf: null,
   };
   params.identifier = ""
   params.male_animal = ""
   params.female_animal = ""
+  params.calf = "" // NOVO
   params.status = ""
   params.mating_type = ""
   params.mating_date = ""
@@ -226,6 +296,10 @@ watch(queryState, () => {
   debouncedUpdateUrl();
 }, {deep: true});
 
+watch(() => queryState.value.predictedCalvingDate, debouncedUpdateUrl, {deep: true});
+watch(() => queryState.value.actualCalvingDate, debouncedUpdateUrl, {deep: true});
+watch(() => queryState.value.matingDate, debouncedUpdateUrl, {deep: true});
+
 watch(params, (value) => {
   store.fetchReproductions(value)
 }, {deep: true});
@@ -234,6 +308,7 @@ onMounted(() => {
   // store.fetchReproductions();
   animalStore.fetchParents('female');
   animalStore.fetchParents('male');
+  animalStore.fetchAnimals();
 });
 </script>
 

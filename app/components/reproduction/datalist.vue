@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-col w-full max-h-[70vh] overflow-y-auto">
-    <div class="">
+  <div class="flex flex-col w-full min-h-[50vh] max-h-[70vh] overflow-y-auto">
+    <div class="sticky top-0 bg-base-100 z-10">
       <filters/>
     </div>
     <UTable
