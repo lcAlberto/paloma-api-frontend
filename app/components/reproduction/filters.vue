@@ -283,7 +283,7 @@ const clearFilters = () => {
   params.identifier = ""
   params.male_animal = ""
   params.female_animal = ""
-  params.calf = "" // NOVO
+  params.calf = ""
   params.status = ""
   params.mating_type = ""
   params.mating_date = ""

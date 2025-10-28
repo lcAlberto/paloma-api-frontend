@@ -5,7 +5,12 @@
         <div class="card-body">
           <div class="w-full flex justify-between">
             <h2 class="card-title">Ciclos Reprodutivos</h2>
-            <button class="btn btn-primary">New Cycle</button>
+            <NuxtLink
+                class="btn btn-primary"
+                to="/reproduction/create"
+            >
+              New Cycle
+            </NuxtLink>
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
           <reproduction-datalist/>

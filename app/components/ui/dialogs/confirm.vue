@@ -1,7 +1,7 @@
 <template>
   <dialog
-      id="default_modal"
-      ref="default_modal"
+      id="default_confirm_modal"
+      ref="default_confirm_modal"
       class="modal flex items-center justify-center"
       @close="close()"
   >
@@ -82,7 +82,7 @@ const props = defineProps({
 
 const emits = defineEmits(['close', 'accept', 'confirm', 'update:modelValue']);
 
-const default_modal = ref<HTMLDialogElement | null>(null);
+const default_confirm_modal = ref<HTMLDialogElement | null>(null);
 
 const colorClasses = computed(() => {
   return {
@@ -106,11 +106,11 @@ const confirm = () => {
 }
 
 watch(() => props.modelValue, (newVal) => {
-  if (default_modal.value) {
+  if (default_confirm_modal.value) {
     if (newVal) {
-      default_modal.value.showModal();
+      default_confirm_modal.value.showModal();
     } else {
-      default_modal.value.close();
+      default_confirm_modal.value.close();
     }
   }
 });

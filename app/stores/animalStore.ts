@@ -34,7 +34,8 @@ export const useAnimalStore = defineStore('animal', {
       editingAnimal: false,
       deletingAnimal: false,
     },
-    filters: {} as AnimalFilters
+    filters: {} as AnimalFilters,
+    formErrors: {} as Record<string, string[]>,
   }),
   getters: {
     animalCount: (state) => state.animals.length,
@@ -161,20 +162,32 @@ export const useAnimalStore = defineStore('animal', {
     },
 
     async createAnimal(form: AnimalFormInterface) {
+      console.log('createAnimal', form);
       const uiStore = useUiStore();
       try {
         this.loading.creatingAnimal = true
         const {$api} = useNuxtApp();
         const authStore = useAuthStore();
-        form.farm_id = authStore.currentFarm?.id
 
         return await $api('/animals/', {
           method: 'POST',
-          body: {...form}
+          body: {...form, farm_id: authStore.currentFarm?.id}
         })
       } catch (error) {
-        uiStore.setToast({type: 'error', message: 'Failed to create animal.', title: 'Error.', delay: 5000});
-        console.log('Error creating animals', error);
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+          const errorData = error.response._data || error.data;
+          this.formErrors = errorData;
+          uiStore.setToast({
+            type: 'error',
+            message: 'Verifique os erros no formulário.',
+            title: 'Falha na Validação.',
+            delay: 5000
+          });
+          return false;
+        } else {
+          uiStore.setToast({type: 'error', message: 'Failed to create animal.', title: 'Error.', delay: 5000});
+        }
       } finally {
         this.loading.creatingAnimal = false
       }
@@ -193,8 +206,19 @@ export const useAnimalStore = defineStore('animal', {
           body: {...form}
         })
       } catch (error) {
-        uiStore.setToast({type: 'error', message: 'Failed to update animal.', title: 'Error.', delay: 5000});
-        console.log('Error creating animals', error);
+        if (error.response && error.response.status === 400) {
+          const errorData = error.response._data || error.data;
+          this.formErrors = errorData;
+          uiStore.setToast({
+            type: 'error',
+            message: 'Verifique os erros no formulário.',
+            title: 'Falha na Validação.',
+            delay: 5000
+          });
+          return false;
+        } else {
+          uiStore.setToast({type: 'error', message: 'Failed to update animal.', title: 'Error.', delay: 5000});
+        }
       } finally {
         this.loading.creatingAnimal = false
       }

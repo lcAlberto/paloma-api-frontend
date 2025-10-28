@@ -1,5 +1,5 @@
 <template>
-  <div class="min-w-80 max-w-7xl ">
+  <div class="min-w-80 max-w-7xl z-[1000]">
     <div
         :class="[colorClasses, 'alert', { 'alert-soft': toast.soft, 'alert-outline': toast.outline }]"
         class="flex flex-col shadow-lg relative"
