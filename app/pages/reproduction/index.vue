@@ -14,6 +14,8 @@
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
           <reproduction-datalist/>
+          AAA{{ store.openModalReproductionInfo }}
+          <predicted-calving-info-modal/>
         </div>
       </div>
     </div>
@@ -25,6 +27,9 @@
 >
 
 import type {BreadcrumbItem} from "@nuxt/ui";
+import PredictedCalvingInfoModal from "~/components/reproduction/predicted-calving-info-modal.vue";
+
+const store = useReproductionStore()
 
 const breadcrumbItems: BreadcrumbItem[] = [
   {

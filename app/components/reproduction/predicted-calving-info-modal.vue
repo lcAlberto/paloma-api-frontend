@@ -1,9 +1,11 @@
 <template>
   <div>
+    <br>
+    <p>openModalReproductionInfo? {{ openModalReproductionInfo }}</p>
     <modal
-        v-model="isOpen"
-        :max-width-class="'max-w-2xl'"
-        :width-class="'max-w-xl'"
+        v-model="openModalReproductionInfo"
+        :max-width-class="'max-w-full'"
+        @close="reproductionStore.openModalReproductionInfo = false"
     >
       <template #header>
         <h3 class="text-lg font-bold">Informações de parto previsto</h3>
@@ -13,15 +15,15 @@
           <div class="space-y-4">
             <div>
               <h4 class="font-bold">Data prevista de parto:</h4>
-              <p>{{ predictedCalvingDate }}</p>
+              <p>{{ reproductionInfo.predicted_calving_date }}</p>
             </div>
             <div>
               <h4 class="font-bold">Dias restantes para o parto:</h4>
-              <p>{{ daysUntilCalving }}</p>
+              <p>{{ reproductionInfo.female_animal }}</p>
             </div>
             <div>
               <h4 class="font-bold">Instruções especiais:</h4>
-              <p>{{ specialInstructions }}</p>
+              <p>fkjrlketjlk</p>
             </div>
           </div>
         </div>
@@ -35,22 +37,10 @@
 >
 import Modal from "~/components/ui/dialogs/modal.vue";
 
-const props = defineProps({
-  modelValue: {type: Boolean, default: false}
-});
-
-const emits = defineEmits(['update:modelValue']);
-
 const reproductionStore = useReproductionStore();
+const {openModalReproductionInfo} = storeToRefs(reproductionStore)
+const reproductionInfo = reproductionStore.reproductionCreateInfo
 
-const isOpen = ref(false);
-
-watch(() => props.modelValue, (newVal) => {
-  isOpen.value = newVal;
-  if (!newVal) {
-    emits('update:modelValue', false);
-  }
-});
 </script>
 
 
