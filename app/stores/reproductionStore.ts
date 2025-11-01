@@ -72,10 +72,11 @@ export const useReproductionStore = defineStore('reproduction', {
         this.loading.creatingReproduction = true;
         const {$api} = useNuxtApp();
 
-        return await $api('/reproductions/', {
+        const response = await $api('/reproductions/', {
           method: 'POST',
           body: {...form},
         });
+        console.log(response);
       } catch (error) {
         if (error.response && error.response.status === 400) {
           const errorData = error.response._data || error.data;
@@ -152,6 +153,12 @@ export const useReproductionStore = defineStore('reproduction', {
         return await $api(`/reproductions/${id}/`, {
           method: 'DELETE',
           // params,
+        });
+        uiStore.setToast({
+          type: 'success',
+          message: 'Reproduction deleted successfully.',
+          title: 'Success.',
+          delay: 5000
         });
       } catch (error) {
         uiStore.setToast({type: 'error', message: 'Failed to delete reproduction.', title: 'Error.', delay: 5000});

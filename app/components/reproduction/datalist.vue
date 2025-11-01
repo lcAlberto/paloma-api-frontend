@@ -19,17 +19,20 @@
     >
       <template #actions-cell="{ row }">
         <div>
-          <dropdown
-              :icon="['fas', 'fa-ellipsis-vertical']"
-              :options="[
-                  {value: 'show', icon: 'fa-list', label: 'Ficha técnica'},
-                  {value: 'delete', icon: 'fa-trash', label: 'Excluir'},
-              ]"
-              option-label="label"
-              option-value="value"
-              position="dropdown-left"
-              @selected="(action) => dispatchAction(action, row.original)"
-          />
+          <NuxtLink
+              :to="`/reproduction/${row.original.id}`"
+              class="btn btn-ghost btn-sm mr-2"
+              title="Ver Ficha Técnica"
+          >
+            <i class="fas fa-list text-lg text-primary hover:text-primary-focus"/>
+          </NuxtLink>
+          <button
+              class="btn btn-ghost btn-sm mr-2"
+              title="Excluir Registro de Reprodução"
+              @click="openConfirm(row.original.id)"
+          >
+            <i class="fas fa-trash text-lg text-error hover:text-error-focus"/>
+          </button>
         </div>
       </template>
     </UTable>
@@ -41,6 +44,17 @@
         />
       </div>
     </div>
+    <confirm
+        v-model="showConfirmDelete"
+        :message="`Tem certeza que deseja excluir esse registro? Esta ação não pode ser desfeita.`"
+        cancel-button-icon="fa fa-times"
+        cancel-button-label="Cancelar"
+        confirm-button-icon="fa fa-trash"
+        confirm-button-label="Excluir"
+        title="Confirmação de exclusão"
+        type="error"
+        @confirm="submitDelete"
+    />
   </div>
 </template>
 <script
@@ -53,22 +67,35 @@ import Dropdown from "~/components/ui/listagem/dropdown.vue";
 import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 import {useReproductionStore} from "~/stores/reproductionStore";
 import Filters from "~/components/reproduction/filters.vue";
+import Confirm from "~/components/ui/dialogs/confirm.vue";
 
 const params = useUrlSearchParams('history');
-const router = useRouter();
 const store = useReproductionStore();
 
-const rowSelection = ref({});
 const pagination = computed(() => store.pagination);
+const rowSelection = ref({});
+const showConfirmDelete = ref(false);
+const reproductionToDeleteId = ref<number | null>(null);
 
 const handlePageUpdate = (page: number) => {
   params.page = String(page);
 };
 
-const dispatchAction = (action: string, animal: AnimalFormInterface) => {
-  if (action === 'show')
-    router.push(`/reproduction/${animal?.id}`)
-}
+const openConfirm = (id: number) => {
+  if (!id) return;
+  reproductionToDeleteId.value = id;
+  showConfirmDelete.value = true;
+};
+
+const submitDelete = async () => {
+  console.log(reproductionToDeleteId.value);
+  if (reproductionToDeleteId.value !== null) {
+    const success = await store.deleteReproduction(reproductionToDeleteId.value);
+    if (success) {
+      showConfirmDelete.value = false;
+    }
+  }
+};
 
 watch(params, async (newParams) => {
   const query = Object.fromEntries(

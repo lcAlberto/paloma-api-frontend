@@ -133,7 +133,6 @@
           >
             <legend class="fieldset-legend">
               Bezerrro
-              <!--              <sup class="text-error">*</sup>-->
             </legend>
             <small class="">
               Se este ciclo se já resultou no nascimento do bezerro, você pode selecionar ele aqui. Ou criar um novo
@@ -241,10 +240,10 @@ onMounted(() => {
 
   if (props.old) {
     form.value = props.old
-    if (props.old.father)
-      form.value.male_animal_id = props.old.male_animal_id
-    if (props.old.mother)
-      form.value.female_animal_id = props.old.female_animal_id
+    if (props.old.male_animal?.id)
+      form.value.male_animal_id = props.old.male_animal.id
+    if (props.old.female_animal?.id)
+      form.value.female_animal_id = props.old.female_animal.id
 
   }
 })

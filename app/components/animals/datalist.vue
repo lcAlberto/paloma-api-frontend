@@ -12,7 +12,7 @@
         :ui="{
           base: 'table w-full',
           thead: 'bg-base-200 py-2 rounded-t-xl',
-          th: 'py-2',
+          th: 'py-2'
         }"
         class="flex-1 border border-base-200 rounded-b-xl w-full"
         sticky
