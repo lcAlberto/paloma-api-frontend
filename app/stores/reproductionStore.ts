@@ -219,5 +219,9 @@ export const useReproductionStore = defineStore('reproduction', {
         this.loading.deletingReproduction = false;
       }
     },
+    clearReproductionCreateInfo() {
+      this.reproductionCreateInfo = {} as ReproductiveCycleData;
+      this.openModalReproductionInfo = false;
+    }
   }
 });

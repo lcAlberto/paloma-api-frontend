@@ -15,6 +15,7 @@
       <slot name="header">
         <h3 class="text-lg font-bold">Hello!</h3>
       </slot>
+      <div class="divider my-2"/>
       <slot
           class="py-4"
           name="body"

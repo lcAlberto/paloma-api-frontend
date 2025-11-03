@@ -1,29 +1,95 @@
 <template>
   <div>
-    <br>
-    <p>openModalReproductionInfo? {{ openModalReproductionInfo }}</p>
     <modal
         v-model="openModalReproductionInfo"
-        :max-width-class="'max-w-full'"
-        @close="reproductionStore.openModalReproductionInfo = false"
+        width-class="w-7xl"
+        @close="reproductionStore.clearReproductionCreateInfo()"
     >
       <template #header>
-        <h3 class="text-lg font-bold">Informações de parto previsto</h3>
+        <div>
+          <div class="flex flex-col w-full gap-3">
+            <div class="bg-secondary-content text-secondary w-min py-2 px-2 rounded-xl">
+              <i class="fa-solid fa-calendar-alt fa-3x"/>
+            </div>
+            <div class="flex flex-col w-full">
+              <h3 class="text-2xl font-bold">Previsão de parto</h3>
+              <p>Ciclo reprodutivo iniciado</p>
+            </div>
+          </div>
+        </div>
       </template>
       <template #body>
-        <div class="max-h-[70vh] overflow-y-auto">
-          <div class="space-y-4">
-            <div>
-              <h4 class="font-bold">Data prevista de parto:</h4>
-              <p>{{ reproductionInfo.predicted_calving_date }}</p>
+        <div>
+          <p>A data do parto é uma estimativa. Diversos fatores como clima, raça do animal, e
+            até mesmo as fases da lua podem influenciar no dia em que o parto acontecerá</p>
+          <div
+              v-if="reproductionCreateInfo"
+              class="flex flex-col items-center justify-center"
+          >
+            <div class="w-full py-5">
+              <h3 class="text-2xl font-bold">{{ reproductionCreateInfo?.female_animal?.name }}</h3>
             </div>
-            <div>
-              <h4 class="font-bold">Dias restantes para o parto:</h4>
-              <p>{{ reproductionInfo.female_animal }}</p>
+            <div class="stats shadow mt-5">
+              <div class="stat place-items-center">
+                <div class="stat-title text-lg">Tipo</div>
+                <div class="stat-value">{{ reproductionCreateInfo.mating_type }}</div>
+              </div>
+
+              <div class="stat place-items-center">
+                <div class="stat-title text-lg">Ciclo iniciado em</div>
+                <div class="stat-value">
+                  {{ new Date(reproductionCreateInfo.heat_start_date).toLocaleDateString() }}
+                </div>
+              </div>
+
+              <div class="stat place-items-center">
+                <div class="stat-title text-lg">Parto previsto para</div>
+                <div class="stat-value text-secondary">
+                  {{ new Date(reproductionCreateInfo.predicted_calving_date).toLocaleDateString() }}
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 class="font-bold">Instruções especiais:</h4>
-              <p>fkjrlketjlk</p>
+
+            <div class="overflow-x-auto mt-5">
+              <h1 class="text-xl font-bold">
+                Detalhes
+              </h1>
+              <table class="table w-full">
+                <thead>
+                <tr>
+                  <th>Fêmea</th>
+                  <th>Data da cobertura/fecundação</th>
+                  <th>Tipo</th>
+                  <th>
+                    <span v-if="reproductionCreateInfo.mating_type === 'natural'">
+                      Macho
+                    </span>
+                    <span v-else>
+                      Doador
+                    </span>
+                  </th>
+                </tr>
+                </thead>
+                <tbody v-if="reproductionCreateInfo">
+                <tr>
+                  <td>{{ reproductionCreateInfo?.female_animal?.name }}</td>
+                  <td>
+                    <span v-if="reproductionCreateInfo?.mating_date">
+                      {{ new Date(reproductionCreateInfo?.mating_date).toLocaleDateString() }}
+                    </span>
+                  </td>
+                  <td>{{ reproductionCreateInfo.mating_type }}</td>
+                  <td>
+                    <span v-if="reproductionCreateInfo.mating_type && reproductionCreateInfo.male_animal">
+                      {{ reproductionCreateInfo.male_animal.name }}
+                    </span>
+                    <span v-else>
+                      -
+                    </span>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -38,8 +104,7 @@
 import Modal from "~/components/ui/dialogs/modal.vue";
 
 const reproductionStore = useReproductionStore();
-const {openModalReproductionInfo} = storeToRefs(reproductionStore)
-const reproductionInfo = reproductionStore.reproductionCreateInfo
+const {openModalReproductionInfo, reproductionCreateInfo} = storeToRefs(reproductionStore)
 
 </script>
 
