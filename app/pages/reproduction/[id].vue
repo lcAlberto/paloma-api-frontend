@@ -4,7 +4,7 @@
       <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
           <div class="w-full flex justify-between">
-            <h2 class="card-title">Edit Animal {{ animal_id || 'nada' }}</h2>
+            <h2 class="card-title">Edit Ciclo reprodutivo</h2>
             <button
                 class="btn btn-outline btn-primary"
                 @click="router.back()"
@@ -15,9 +15,9 @@
           </div>
           <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
           <div class="py-5 w-full">
-            <animals-animal-form
-                v-if="!store.loading.fetchingAnimal"
-                :old="store.animal"
+            <reproduction-form
+                v-if="!store.loading.fetchingReproduction"
+                :old="store.reproduction"
             >
               <template #actions="{fomData}">
                 <div
@@ -43,15 +43,16 @@
                   </button>
                 </div>
               </template>
-            </animals-animal-form>
+            </reproduction-form>
           </div>
         </div>
       </div>
     </div>
     <confirm
+        v-if="reproduction"
         v-model="confirmDelete"
-        :message="`Tem certeza que deseja excluir ${animal.name}? Esta ação não pode ser desfeita.`"
-        :title="`Confirmação de exclusão de ${animal.name}`"
+        :message="`Tem certeza que deseja excluir ${reproduction?.id}? Esta ação não pode ser desfeita.`"
+        :title="`Confirmação de exclusão de ${reproduction?.id}`"
         cancel-button-icon="fa fa-times"
         cancel-button-label="Cancelar"
         confirm-button-icon="fa fa-trash"
@@ -65,43 +66,41 @@
     lang="ts"
     setup
 >
-import {useAnimalStore} from "~/stores/animalStore";
-import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
 import type {BreadcrumbItem} from "@nuxt/ui";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import Confirm from "~/components/ui/dialogs/confirm.vue";
-// import type {AnimalFormInterface} from "~/types/AnimalFormInterface";
+import type {ReproductiveCycleFormInterface} from "~/types/ReproductiveCycleFormInterface";
 
 const router = useRouter();
 const route = useRoute();
-const store = useAnimalStore()
+const store = useReproductionStore()
 const uiStore = useUiStore();
 
-const animal_id = ref('')
-const animal = computed(() => store.animal)
+const reproduction_id = ref('')
+const reproduction = computed(() => store.reproduction)
 const confirmDelete = ref(false)
 
-const edit = async (formData: AnimalFormInterface) => {
-  if (animal_id.value.length === 0)
+const edit = async (formData: ReproductiveCycleFormInterface) => {
+  if (reproduction_id.value.length === 0)
     return
-  const response = await store.editAnimal(animal_id.value, formData)
+  const response = await store.editReproduction(reproduction_id.value, formData)
   if (response) {
-    uiStore.setToast({type: 'success', message: 'Animal created successfully.', title: 'Success.', delay: 5000});
-    await router.push('/animals/')
+    uiStore.setToast({type: 'success', message: 'Cycle created successfully.', title: 'Success.', delay: 5000});
+    await router.push('/reproduction/')
   }
 }
 
 const submitDelete = async () => {
-  if (animal_id.value.length === 0)
+  if (reproduction_id.value.length === 0)
     return
-  await store.destroyAnimal(parseInt(animal_id.value))
-  await router.push('/animals/')
+  await store.deleteReproduction(parseInt(reproduction_id.value))
+  await router.push('/reproduction/')
 }
 
 onMounted(() => {
-  animal_id.value = route.params.id as string;
-  if (animal_id.value) {
-    store.fetchAnimal(animal_id.value);
+  reproduction_id.value = route.params.id as string;
+  if (reproduction_id.value) {
+    store.fetchReproduction(reproduction_id.value);
   }
 });
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -111,19 +110,19 @@ const breadcrumbItems: BreadcrumbItem[] = [
     to: '/home'
   },
   {
-    label: 'Animais',
+    label: 'Reproduction',
     icon: 'i-lucide-box',
-    to: '/animals'
+    to: '/reproduction'
   },
   {
     label: 'Edit',
     icon: 'i-lucide-box',
-    to: `/animals/${animal_id.value}`
+    to: `/reproduction/${reproduction_id.value}`
   },
 ]
 
 definePageMeta({
-  title: 'Edit Animal',
+  title: 'Edit Cycle',
   breadcrumb: breadcrumbItems,
   auth: true,
 })

@@ -7,10 +7,9 @@
         :is-expanded="isExpanded"
         @toggle="isExpanded = !isExpanded"
     />
-    <main class="flex-grow bg-base-300">
+    <main class="flex-grow bg-base-300 overflow-hidden h-screen">
       <navbar/>
       <div class="px-8">
-        <!--      <div class="xl:max-w-3/4 px-8 mx-auto">-->
         <breadcrumb/>
         <slot/>
       </div>

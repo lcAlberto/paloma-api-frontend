@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="grid content-start  md:grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid content-start md:grid-cols-1 md:grid-cols-3 gap-5">
       <!--    COL 1-->
       <div class="">
         <div class="card bg-base-100 shadow-sm group cursor-pointer">
@@ -38,7 +38,12 @@
                 class="input w-full"
                 type="text"
             >
-            <p class="label">Optional</p>
+            <span
+                v-if="identifierError"
+                class="label-text-alt text-error font-bold"
+            >
+              {{ identifierError }}
+            </span>
           </fieldset>
 
           <!--      NAME-->
@@ -49,7 +54,12 @@
                 class="input w-full"
                 type="text"
             >
-            <p class="label">Optional</p>
+            <span
+                v-if="nameError"
+                class="label-text-alt text-error font-bold"
+            >
+              {{ name }}
+            </span>
           </fieldset>
 
           <fieldset class="fieldset">
@@ -59,7 +69,12 @@
                 class="input w-full"
                 type="date"
             >
-            <p class="label">Optional</p>
+            <span
+                v-if="bornDateError"
+                class="label-text-alt text-error font-bold"
+            >
+              {{ bornDateError }}
+            </span>
           </fieldset>
 
           <!--      SEX-->
@@ -90,6 +105,12 @@
                   type="radio"
                   value="female"
               >
+              <span
+                  v-if="sexError"
+                  class="label-text-alt text-error font-bold"
+              >
+              {{ sexError }}
+            </span>
             </div>
           </div>
           <p class="label">Optional</p>
@@ -99,6 +120,7 @@
           <legend class="fieldset-legend">Raça</legend>
           <input-select
               v-model="form.breed_id"
+              :error-message="breedIdError"
               :items="store.breeds"
               :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"
               clearable
@@ -118,6 +140,7 @@
             <legend class="fieldset-legend">Mãe</legend>
             <input-select
                 v-model="form.mother_id"
+                :error-message="motherIdError"
                 :items="store.mothers"
                 :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"
                 clearable
@@ -131,6 +154,7 @@
             <legend class="fieldset-legend">Pai</legend>
             <input-select
                 v-model="form.father_id"
+                :error-message="fatherIdError"
                 :items="store.fathers"
                 :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"
                 clearable
@@ -148,6 +172,7 @@
             <legend class="fieldset-legend">Classificação</legend>
             <input-select
                 v-model="form.classification_id"
+                :error-message="classificationIdError"
                 :items="store.classifications"
                 :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"
                 clearable
@@ -161,6 +186,7 @@
             <legend class="fieldset-legend">Status atual</legend>
             <input-select
                 v-model="form.status_id"
+                :error-message="statusIdError"
                 :items="store.animalStatus"
                 :loading="store.loading.fetchingAnimalStatus || store.loading.fetched || localLogin"
                 clearable
@@ -209,6 +235,40 @@ const form = ref({
 })
 const localLogin = ref(false)
 
+const identifierError = computed(() => {
+  return store.formErrors.identifier ? store.formErrors.identifier[0] : '';
+});
+const nameError = computed(() => {
+  return store.formErrors.name ? store.formErrors.name[0] : '';
+});
+const bornDateError = computed(() => {
+  return store.formErrors.born_date ? store.formErrors.born_date[0] : '';
+});
+
+const sexError = computed(() => {
+  return store.formErrors.sex ? store.formErrors.sex[0] : '';
+});
+
+const breedIdError = computed(() => {
+  return store.formErrors.breed_id ? store.formErrors.breed_id[0] : '';
+});
+
+const motherIdError = computed(() => {
+  return store.formErrors.mother_id ? store.formErrors.mother_id[0] : '';
+});
+
+const fatherIdError = computed(() => {
+  return store.formErrors.father_id ? store.formErrors.father_id[0] : '';
+});
+
+const classificationIdError = computed(() => {
+  return store.formErrors.classification_id ? store.formErrors.classification_id[0] : '';
+});
+
+const statusIdError = computed(() => {
+  return store.formErrors.status_id ? store.formErrors.status_id[0] : '';
+});
+
 onMounted(() => {
   store.fetchParents('male')
   store.fetchParents('female')
@@ -228,6 +288,7 @@ onMounted(() => {
 
   }
 })
+
 </script>
 
 

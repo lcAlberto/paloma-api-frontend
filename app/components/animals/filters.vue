@@ -28,7 +28,10 @@
             option-value="id"
             return-object
         />
-        <button class="btn mt-5">
+        <button
+            class="btn mt-5"
+            @click="clearFilters"
+        >
           Limpar
           <i class="fa fa-delete-left"/>
         </button>
