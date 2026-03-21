@@ -1,252 +1,311 @@
+// store/reproductionStore.ts
+
 import {defineStore} from "pinia";
+import {ref, computed} from 'vue';
+import {z} from 'zod';
+import {SemenDonorSchema, type SemenDonorForm} from '~/schemas/semenDonorSchema';
 import type {Pagination} from "~/types/PaginationInterface";
 import type {ReproductiveCycleFormInterface} from "~/types/ReproductiveCycleFormInterface";
 import type {ReproductiveCycleData} from "~/types/ReproductiveCycleData";
 
-export const useReproductionStore = defineStore('reproduction', {
-  state: () => ({
-    reproductions: [] as Array<{ id: number; type: string; date: string }>,
-    reproduction: null as { id: number; type: string; date: string } | null,
-    donors: [],
-    pagination: {} as Pagination,
-    formErrors: {} as Record<string, string[]>,
-    reproductionCreateInfo: {} as ReproductiveCycleData,
-    openModalReproductionInfo: false,
-    loading: {
-      fetchingReproductions: false,
-      fetchingReproduction: false,
-      creatingReproduction: false,
-      editingReproduction: false,
-      deletingReproduction: false,
-      fetchingSemenDonor: false,
-    },
-  }),
-  // getters: {
-  //   reproductionCount: (state) => state.reproductions.length,
-  // },
-  actions: {
-    async fetchReproductions(params: Record<string, any> = {}) {
-      const uiStore = useUiStore();
-      try {
-        this.loading.fetchingReproductions = true;
-        const {$api} = useNuxtApp();
-        const authStore = useAuthStore();
-        params.farm = authStore.currentFarm.id;
+// Tipos de dados
+interface ReproductionItem {
+  id: number;
+  type: string;
+  date: string
+}
 
-        const response = await $api('/reproductions/', {
-          method: 'GET',
-          params: {...params},
-        });
+interface SemenDonor {
+  id: number;
+  name: string;
+  registration_number: string | null;
+  breed: number; // Supondo o ID da raça
+}
 
-        this.reproductions = response.results;
-        this.pagination = response.pagination;
-      } catch (error: Response) {
-        uiStore.setToast({
-          type: 'error',
-          message: 'Failed to fetch reproductions.',
-          title: 'Error.',
-          delay: 5000
-        });
-        console.log(error);
-      } finally {
-        this.loading.fetchingReproductions = false;
-      }
-    },
+interface LoadingState {
+  fetchingReproductions: boolean;
+  fetchingReproduction: boolean;
+  creatingReproduction: boolean;
+  editingReproduction: boolean;
+  deletingReproduction: boolean;
+  fetchingSemenDonor: boolean;
+  creatingSemenDonor: boolean;
+  editingSemenDonor: boolean;
+  deletingSemenDonor: boolean;
+}
 
-    async fetchReproduction(id: number | string) {
-      const uiStore = useUiStore();
-      try {
-        this.loading.fetchingReproduction = true;
-        const {$api} = useNuxtApp();
-        const authStore = useAuthStore();
-        const params = {farm: authStore.currentFarm.id};
+const emptyPagination: Pagination = {} as Pagination;
+const emptyReproductionItem: ReproductionItem = {id: 0, type: '', date: ''};
+const emptyReproductiveCycleData: ReproductiveCycleData = {} as ReproductiveCycleData;
 
-        const response = await $api(`/reproductions/${id}/`, {
-          method: 'GET',
-          params,
-        });
+export const useReproductionStore = defineStore('reproduction', () => {
+  // STATE (ref's)
+  const reproductions = ref<ReproductionItem[]>([]);
+  const reproduction = ref<ReproductionItem | null>(null);
+  const donors = ref<SemenDonor[]>([]); // Tipagem mais específica
+  const pagination = ref<Pagination>({...emptyPagination});
+  const formErrors = ref<Record<string, string[]>>({});
+  const reproductionCreateInfo = ref<ReproductiveCycleData>({...emptyReproductiveCycleData});
+  const openModalReproductionInfo = ref<boolean>(false);
+  const loading = ref<LoadingState>({
+    fetchingReproductions: false,
+    fetchingReproduction: false,
+    creatingReproduction: false,
+    editingReproduction: false,
+    deletingReproduction: false,
+    fetchingSemenDonor: false,
+    creatingSemenDonor: false,
+    editingSemenDonor: false,
+    deletingSemenDonor: false,
+  });
 
-        this.reproduction = response;
-      } catch (error) {
-        uiStore.setToast({
-          type: 'error',
-          message: 'Failed to fetch reproduction.',
-          title: 'Error.',
-          delay: 5000
-        });
-        console.log(error);
-      } finally {
-        this.loading.fetchingReproduction = false;
-      }
-    },
-
-    async createReproduction(form: ReproductiveCycleFormInterface) {
-      const uiStore = useUiStore();
-      this.formErrors = {};
-      try {
-        this.loading.creatingReproduction = true;
-        const {$api} = useNuxtApp();
-
-        const response = await $api('/reproductions/', {
-          method: 'POST',
-          body: {...form},
-        });
-        const router = useRouter()
-        if (response.status === 'pending') {
-          await router.push(`/reproduction/`)
-          this.reproductionCreateInfo = {
-            id: response.id,
-            heat_start_date: response.heat_start_date,
-            mating_date: response.mating_date,
-            actual_calving_date: response.actual_calving_date,
-            predicted_calving_date: response.predicted_calving_date,
-            male_animal: response.male_animal,
-            female_animal: response.female_animal,
-            calf_born: response.calf_born,
-            mating_type: response.mating_type,
-            status: response.status,
+  /**
+   * Valida o formulário do Doador de Sêmen e retorna os dados validados ou erros.
+   * @param data Dados do formulário.
+   * @returns Objeto com 'success' e 'data' ou 'errors'.
+   */
+  function validateSemenDonor(data: SemenDonorForm) {
+    try {
+      const validatedData = SemenDonorSchema.parse(data);
+      formErrors.value = {};
+      return {success: true, data: validatedData};
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const mappedErrors: Record<string, string[]> = {};
+        error.errors.forEach(err => {
+          const path = err.path.join('.');
+          if (!mappedErrors[path]) {
+            mappedErrors[path] = [];
           }
-          this.openModalReproductionInfo = true
-        }
-        if (!this.openModalReproductionInfo) {
-          await router.push(`/reproduction/`)
-          uiStore.setToast({
-            type: 'success',
-            message: 'Reproduction created successfully.',
-            title: 'Success.',
-            delay: 5000
-          });
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          const errorData = error.response._data || error.data;
-          this.formErrors = errorData;
-          uiStore.setToast({
-            type: 'error',
-            message: 'Verifique os erros no formulário.',
-            title: 'Falha na Validação.',
-            delay: 5000
-          });
-          return false;
-        } else {
-          uiStore.setToast({
-            type: 'error',
-            message: 'Failed to create reproduction.',
-            title: 'Error.',
-            delay: 5000
-          });
-        }
-      } finally {
-        this.loading.creatingReproduction = false;
-      }
-    },
-
-    async editReproduction(id: string | number, form: ReproductiveCycleFormInterface) {
-      const uiStore = useUiStore();
-      try {
-        this.loading.editingReproduction = true;
-        const {$api} = useNuxtApp();
-        return await $api(`/reproductions/${id}/`, {
-          method: 'PUT',
-          body: {...form},
+          mappedErrors[path].push(err.message);
         });
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          const errorData = error.response._data || error.data;
-          this.formErrors = errorData;
-          uiStore.setToast({
-            type: 'error',
-            message: 'Verifique os erros no formulário.',
-            title: 'Falha na Validação.',
-            delay: 5000
-          });
-          return false;
-        } else {
-          uiStore.setToast({
-            type: 'error',
-            message: 'Failed to create reproduction.',
-            title: 'Error.',
-            delay: 5000
-          });
-          console.log('Error creating reproduction', error);
+        formErrors.value = mappedErrors;
+        return {success: false, errors: mappedErrors};
+      }
+      return {success: false, errors: {general: ['Erro de validação desconhecido.']}};
+    }
+  }
+
+  async function createSemenDonor(form: SemenDonorForm) {
+    const uiStore = useUiStore();
+    formErrors.value = {};
+    const validation = validateSemenDonor(form);
+
+    if (!validation.success) {
+      uiStore.setToast({
+        type: 'error',
+        message: 'Verifique os erros de validação no formulário do doador.',
+        title: 'Falha na Validação (Zod).',
+        delay: 5000
+      });
+      return false;
+    }
+
+    try {
+      loading.value.creatingSemenDonor = true;
+      const {$api} = useNuxtApp();
+
+      const response = await $api('/donors/', {
+        method: 'POST',
+        body: validation.data,
+      });
+
+      uiStore.setToast({type: 'success', message: 'Doador criado com sucesso.', title: 'Sucesso.', delay: 5000});
+      return response;
+    } catch (error) {
+      handleApiError(error, uiStore, 'Failed to create semen donor.', 'Erro ao criar doador.');
+      return false;
+    } finally {
+      loading.value.creatingSemenDonor = false;
+    }
+  }
+
+  async function editSemenDonor(id: number | string, form: SemenDonorForm) {
+    const uiStore = useUiStore();
+    formErrors.value = {};
+    const validation = validateSemenDonor(form);
+
+    if (!validation.success) {
+      uiStore.setToast({
+        type: 'error',
+        message: 'Verifique os erros de validação no formulário do doador.',
+        title: 'Falha na Validação (Zod).',
+        delay: 5000
+      });
+      return false;
+    }
+
+    try {
+      loading.value.editingSemenDonor = true;
+      const {$api} = useNuxtApp();
+
+      const response = await $api(`/donors/${id}/`, {
+        method: 'PUT',
+        body: validation.data,
+      });
+
+      uiStore.setToast({type: 'success', message: 'Doador editado com sucesso.', title: 'Sucesso.', delay: 5000});
+      return response;
+    } catch (error) {
+      handleApiError(error, uiStore, 'Failed to edit semen donor.', 'Erro ao editar doador.');
+      return false;
+    } finally {
+      loading.value.editingSemenDonor = false;
+    }
+  }
+
+  async function deleteSemenDonor(id: number | string) {
+    const uiStore = useUiStore();
+    try {
+      loading.value.deletingSemenDonor = true;
+      const {$api} = useNuxtApp();
+
+      await $api(`/donors/${id}/`, {
+        method: 'DELETE',
+      });
+
+      donors.value = donors.value.filter(donor => donor.id !== id);
+
+      uiStore.setToast({type: 'success', message: 'Doador deletado com sucesso.', title: 'Sucesso.', delay: 5000});
+    } catch (error) {
+      handleApiError(error, uiStore, 'Failed to delete semen donor.', 'Erro ao deletar doador.');
+    } finally {
+      loading.value.deletingSemenDonor = false;
+    }
+  }
+
+  function handleApiError(error: any, uiStore: any, defaultMessage: string, validationTitle: string) {
+    console.error('API Error:', error);
+    if (error?.response?.status === 400) {
+      const errorData = error.response._data || error.data;
+      formErrors.value = errorData;
+      uiStore.setToast({
+        type: 'error',
+        message: 'Verifique os erros no formulário.',
+        title: validationTitle,
+        delay: 5000
+      });
+    } else {
+      uiStore.setToast({
+        type: 'error',
+        message: defaultMessage,
+        title: 'Error.',
+        delay: 5000
+      });
+    }
+  }
+
+  async function fetchReproductions(params: Record<string, any> = {}) {
+    const uiStore = useUiStore();
+    try {
+      loading.value.fetchingReproductions = true;
+      const {$api} = useNuxtApp();
+      const authStore = useAuthStore();
+      params.farm = authStore.currentFarm.id;
+
+      const response = await $api('/reproductions/', {
+        method: 'GET',
+        params: {...params},
+      });
+
+      reproductions.value = response.results;
+      pagination.value = response.pagination;
+    } catch (error: any) {
+      uiStore.setToast({
+        type: 'error',
+        message: 'Failed to fetch reproductions.',
+        title: 'Error.',
+        delay: 5000
+      });
+      console.log(error);
+    } finally {
+      loading.value.fetchingReproductions = false;
+    }
+  }
+
+  async function fetchSemenDonors() {
+    const uiStore = useUiStore();
+    try {
+      loading.value.fetchingSemenDonor = true;
+      const {$api} = useNuxtApp();
+      const {results} = await $api(`/donors/`, {
+        method: 'GET',
+      });
+      donors.value = results
+    } catch (e) {
+      uiStore.setToast({
+        type: 'error',
+        message: 'Failed to fetch donor list.',
+        title: 'Error.',
+        delay: 5000
+      });
+      console.error('Error to fetch donor: ', e)
+    } finally {
+      loading.value.fetchingSemenDonor = false;
+    }
+  }
+
+  // (Ação `createReproduction` adaptada, usando o helper `handleApiError` para secar o código)
+  async function createReproduction(form: ReproductiveCycleFormInterface) {
+    const uiStore = useUiStore();
+    formErrors.value = {};
+    try {
+      loading.value.creatingReproduction = true;
+      const {$api} = useNuxtApp();
+      const response = await $api('/reproductions/', {
+        method: 'POST',
+        body: {...form},
+      });
+      const router = useRouter()
+      if (response.status === 'pending') {
+        await router.push(`/reproduction/`)
+        reproductionCreateInfo.value = {
+          id: response.id,
+          heat_start_date: response.heat_start_date,
+          mating_date: response.mating_date,
+          actual_calving_date: response.actual_calving_date,
+          predicted_calving_date: response.predicted_calving_date,
+          male_animal: response.male_animal,
+          female_animal: response.female_animal,
+          calf_born: response.calf_born,
+          mating_type: response.mating_type,
+          status: response.status,
         }
-      } finally {
-        this.loading.editingReproduction = false;
+        openModalReproductionInfo.value = true
       }
-    },
-
-    async fetchReproductionCycle(id: number) {
-      const uiStore = useUiStore();
-      try {
-        this.loading.fetchingReproduction = true;
-        const {$api} = useNuxtApp();
-        return await $api(`/reproductions/${id}/`, {});
-      } catch (error) {
-        uiStore.setToast({
-          type: 'error',
-          message: 'Failed to fetch reproduction.',
-          title: 'Error.',
-          delay: 5000
-        });
-        console.log('Error fetch reproduction', error);
-      } finally {
-        this.loading.fetchingReproduction = false;
-      }
-    },
-
-    async deleteReproduction(id: string | number) {
-      const uiStore = useUiStore();
-      try {
-        this.loading.deletingReproduction = true;
-        const {$api} = useNuxtApp();
-        await $api(`/reproductions/${id}/`, {
-          method: 'DELETE',
-          // params,
-        });
+      if (!openModalReproductionInfo.value) {
+        await router.push(`/reproduction/`)
         uiStore.setToast({
           type: 'success',
-          message: 'Reproduction deleted successfully.',
+          message: 'Reproduction created successfully.',
           title: 'Success.',
           delay: 5000
         });
-      } catch (error) {
-        uiStore.setToast({
-          type: 'error',
-          message: 'Failed to delete reproduction.',
-          title: 'Error.',
-          delay: 5000
-        });
-        console.log('Error deleting reproduction', error);
-      } finally {
-        this.loading.deletingReproduction = false;
       }
-    },
-    clearReproductionCreateInfo() {
-      this.reproductionCreateInfo = {} as ReproductiveCycleData;
-      this.openModalReproductionInfo = false;
-    },
-
-    async fetchSemenDonors() {
-      const uiStore = useUiStore();
-      try {
-        this.loading.fetchingSemenDonor = true;
-        const {$api} = useNuxtApp();
-        const {results} = await $api(`/donors/`, {
-          method: 'GET',
-          // params,
-        });
-        this.donors = results
-      } catch (e) {
-        uiStore.setToast({
-          type: 'error',
-          message: 'Failed to fetch donnor list.',
-          title: 'Error.',
-          delay: 5000
-        });
-        console.error('Error to fetch donor: ', e)
-      } finally {
-        this.loading.fetchingSemenDonor = false;
-      }
+      return response;
+    } catch (error) {
+      handleApiError(error, uiStore, 'Failed to create reproduction.', 'Falha na Validação.');
+      return false;
+    } finally {
+      loading.value.creatingReproduction = false;
     }
-  },
+  }
+
+  return {
+    reproductions,
+    reproduction,
+    donors,
+    pagination,
+    formErrors,
+    reproductionCreateInfo,
+    openModalReproductionInfo,
+    loading,
+    createSemenDonor,
+    editSemenDonor,
+    deleteSemenDonor,
+    validateSemenDonor,
+    fetchReproductions,
+    fetchSemenDonors,
+    createReproduction,
+  };
 });

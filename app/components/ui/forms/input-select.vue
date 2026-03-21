@@ -71,7 +71,7 @@ const props = defineProps({
   optionValue: {type: String, default: 'value',},
   isRequired: {type: Boolean, default: false,},
   errorMessage: {type: String, default: '',},
-  label: {type: String, default: '',},
+  label: {type: String, required: false,},
   placeholder: {type: String, default: 'Selecione um item',},
   loading: {type: Boolean, default: false,},
   returnObject: {type: Boolean, default: false,},
@@ -96,7 +96,7 @@ const selectedItemValue = computed(() => {
   if (props.modelValue === null) {
     return null;
   }
-  if (typeof props.modelValue === 'object' && props.modelValue !== null) {
+  if (typeof props.modelValue === 'object') {
     return props.modelValue[props.optionValue];
   }
   return props.modelValue;
@@ -117,7 +117,7 @@ const handleSelection = (event: Event) => {
   if (props.returnObject) {
     emits('update:modelValue', selectedItem);
   } else {
-    emits('update:modelValue', selectedValue);
+    emits('update:modelValue', parseInt(selectedValue));
   }
   internalLoading.value = false
 };
