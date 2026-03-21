@@ -7,7 +7,7 @@
   >
     <div
         :class="[props.widthClass, props.maxWidthClass]"
-        class="modal-box"
+        class="modal-box overflow-visible"
     >
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -17,7 +17,7 @@
       </slot>
       <div class="divider my-2"/>
       <slot
-          class="py-4"
+          class="py-4 overflow-y-auto"
           name="body"
       >
         <p class="py-4">Welcome to our modal component.</p>

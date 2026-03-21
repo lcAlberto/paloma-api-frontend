@@ -1,5 +1,8 @@
 <template>
-  <div :class="['form-control w-full', { 'opacity-50 pointer-events-none': loading }]">
+  <div
+      ref="datePickerRef"
+      :class="['form-control w-full', { 'opacity-50 pointer-events-none': loading }]"
+  >
     <label
         v-if="label"
         class="label"
@@ -42,7 +45,10 @@
 
     <div
         v-if="isCalendarOpen"
-        class="dropdown-content mt-2 p-4 shadow-2xl bg-base-100 rounded-box w-full xl:max-w-sm lg:max-w-sm z-10 border border-base-300"
+        :class="[
+            'dropdown-content mt-2 p-4 shadow-2xl bg-base-100 rounded-box w-full xl:max-w-sm lg:max-w-sm border border-base-300',
+            'absolute z-50'
+        ]"
     >
       <div class="flex justify-between items-center mb-4">
         <button
@@ -105,10 +111,7 @@
     lang="ts"
     setup
 >
-import {ref, computed, onMounted} from 'vue';
-
 const props = defineProps({
-  // MUDANÇA: modelValue agora é Date ou String (data única), ou null
   modelValue: {
     type: [Date, String],
     default: null
@@ -119,19 +122,19 @@ const props = defineProps({
   loading: {type: Boolean, default: false},
   minDate: {type: [String, Date], default: null},
   maxDate: {type: [String, Date], default: null},
-  // MUDANÇA: Padrão para 1 mês, já que é seleção simples
-  numberOfMonthsToShow: {type: Number, default: 1, validator: (val) => val >= 1 && val <= 4}
+  numberOfMonthsToShow: {type: Number, default: 1, validator: (val: number) => val >= 1 && val <= 4},
+  returnFormat: {type: String, default: 'string', validator: (val: string) => ['string', 'date'].includes(val)},
+  keepOpen: {type: Boolean, default: false},
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const isCalendarOpen = ref(false);
 const currentMonth = ref(new Date());
+const datePickerRef = ref<HTMLElement | null>(null);
 
 const minDateObj = computed(() => props.minDate ? (props.minDate instanceof Date ? props.minDate : new Date(props.minDate)) : null);
 const maxDateObj = computed(() => props.maxDate ? (props.maxDate instanceof Date ? props.maxDate : new Date(props.maxDate)) : null);
-
-// futureMonth e monthsToRender podem ser mantidos, mas futureMonth será útil apenas se numberOfMonthsToShow > 1
 
 const monthsToRender = computed(() => {
   const months = [];
@@ -143,20 +146,39 @@ const monthsToRender = computed(() => {
   return months;
 });
 
-// MUDANÇA: displayValue exibe apenas a data selecionada
 const displayValue = computed(() => {
-  return props.modelValue ? formatDate(props.modelValue) : null;
+  return props.modelValue ? formatToDisplay(props.modelValue) : null;
 });
+
+function formatToDisplay(date: Date | string | null): string {
+  if (!date) return '';
+  const d = date instanceof Date ? date : new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 function toggleCalendar() {
   isCalendarOpen.value = !isCalendarOpen.value;
-  // MUDANÇA: Centraliza no mês da data selecionada
   if (isCalendarOpen.value && props.modelValue) {
     currentMonth.value = new Date(props.modelValue);
     currentMonth.value.setDate(1);
   } else if (isCalendarOpen.value) {
     currentMonth.value = new Date();
     currentMonth.value.setDate(1);
+  }
+  if (isCalendarOpen.value && !props.keepOpen) {
+    document.addEventListener('click', closeOnOutsideClick);
+  } else {
+    document.removeEventListener('click', closeOnOutsideClick);
+  }
+}
+
+function closeOnOutsideClick(event: MouseEvent) {
+  if (isCalendarOpen.value && !props.keepOpen && datePickerRef.value && !datePickerRef.value.contains(event.target as Node)) {
+    isCalendarOpen.value = false;
+    document.removeEventListener('click', closeOnOutsideClick);
   }
 }
 
@@ -168,11 +190,11 @@ function nextMonths() {
   currentMonth.value = new Date(currentMonth.value.setMonth(currentMonth.value.getMonth() + props.numberOfMonthsToShow));
 }
 
-function daysInMonth(date) {
+function daysInMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
-function startDayOfWeek(date) {
+function startDayOfWeek(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 }
 
@@ -186,14 +208,13 @@ function formatDate(date) {
 }
 
 function formatMonthYear(date: Date) {
-  console.log(date)
   if (!date) return '';
-  const options = {year: 'numeric', month: 'long'};
+  const options: Intl.DateTimeFormatOptions = {year: 'numeric', month: 'long'};
   return date.toLocaleDateString('pt-BR', options);
 }
 
 function normalizeDate(year: number | string, month: number | string, day: number | string) {
-  const date = new Date(year, month, day);
+  const date = new Date(Number(year), Number(month), Number(day));
   date.setHours(0, 0, 0, 0);
   return date;
 }
@@ -202,12 +223,25 @@ function selectDay(year: number | string, month: number | string, day: number | 
   const selectedDate = normalizeDate(year, month, day);
   const currentNormalized = props.modelValue ? normalizeDate(new Date(props.modelValue).getFullYear(), new Date(props.modelValue).getMonth(), new Date(props.modelValue).getDate()) : null;
 
+  let valueToEmit: Date | string | null = null;
+
   if (currentNormalized && selectedDate.getTime() === currentNormalized.getTime()) {
-    emit('update:modelValue', null);
+    valueToEmit = null;
   } else {
-    emit('update:modelValue', selectedDate);
+    if (props.returnFormat === 'string') {
+      const d = selectedDate;
+      const yearStr = d.getFullYear();
+      const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(d.getDate()).padStart(2, '0');
+      valueToEmit = `${yearStr}-${monthStr}-${dayStr}`;
+    } else {
+      valueToEmit = selectedDate;
+    }
   }
+
+  emit('update:modelValue', valueToEmit);
   isCalendarOpen.value = false;
+  document.removeEventListener('click', closeOnOutsideClick);
 }
 
 
@@ -262,11 +296,12 @@ onMounted(() => {
   }
   currentMonth.value.setDate(1);
 });
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeOnOutsideClick);
+})
 </script>
 
 <style scoped>
-.dropdown-content {
-  position: absolute;
-  z-index: 100;
-}
+
 </style>

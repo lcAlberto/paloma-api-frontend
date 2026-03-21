@@ -134,9 +134,13 @@
                   option-label="name"
                   option-value="id"
               />
-              <button class="btn btn-primary">
+              <button
+                  class="btn btn-primary"
+                  @click="isOpenSemenDonorModal = true"
+              >
                 <i class="fa fa-plus"/>
               </button>
+              <new-semen-donor-register-modal v-model="isOpenSemenDonorModal"/>
             </div>
           </fieldset>
 
@@ -210,6 +214,7 @@ import InputSelect from "~/components/ui/forms/input-select.vue";
 import InputDateRange from "~/components/ui/forms/date/input-date-range.vue";
 import InputDate from "~/components/ui/forms/date/input-date.vue";
 import AnimalRegisterModal from "~/components/animals/animal-register-modal.vue";
+import NewSemenDonorRegisterModal from "~/components/reproduction/new-semen-donor-register-modal.vue";
 
 const store = useReproductionStore()
 const animalStore = useAnimalStore()
@@ -217,6 +222,8 @@ const animalStore = useAnimalStore()
 const props = defineProps({
   old: {type: Object, required: false, default: null}
 })
+
+const isOpenSemenDonorModal = ref(false)
 
 const form = ref({
   heat_start_date: new Date(),

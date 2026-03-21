@@ -1,5 +1,8 @@
 <template>
-  <div :class="['form-control w-full', { 'opacity-50 pointer-events-none': loading }]">
+  <div
+      ref="dateRangePickerRef"
+      :class="['form-control w-full', { 'opacity-50 pointer-events-none': loading }]"
+  >
     <label
         v-if="label"
         class="label"
@@ -42,7 +45,7 @@
 
     <div
         v-if="isCalendarOpen"
-        class="dropdown-content mt-2 p-4 shadow-2xl bg-base-100 rounded-box w-full xl:max-w-lg lg:max-w-xl z-10 border border-base-300"
+        class="dropdown-content mt-2 p-4 shadow-2xl bg-base-100 rounded-box w-full xl:max-w-lg lg:max-w-xl z-[100] border border-base-300"
     >
       <div class="flex justify-between items-center mb-4">
         <button
@@ -105,7 +108,6 @@
 </template>
 
 <script setup>
-
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -118,7 +120,8 @@ const props = defineProps({
   loading: {type: Boolean, default: false},
   minDate: {type: [String, Date], default: null},
   maxDate: {type: [String, Date], default: null},
-  numberOfMonthsToShow: {type: Number, default: 2, validator: (val) => val >= 1 && val <= 4}
+  numberOfMonthsToShow: {type: Number, default: 2, validator: (val) => val >= 1 && val <= 4},
+  keepOpen: {type: Boolean, default: false},
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -126,6 +129,7 @@ const emit = defineEmits(['update:modelValue']);
 const isCalendarOpen = ref(false);
 const currentMonth = ref(new Date());
 const hoverDate = ref(null);
+const dateRangePickerRef = ref(null);
 
 const minDateObj = computed(() => props.minDate ? (props.minDate instanceof Date ? props.minDate : new Date(props.minDate)) : null);
 const maxDateObj = computed(() => props.maxDate ? (props.maxDate instanceof Date ? props.maxDate : new Date(props.maxDate)) : null);
@@ -168,6 +172,18 @@ function toggleCalendar() {
     currentMonth.value.setDate(1);
   }
   clearHover();
+  if (isCalendarOpen.value && !props.keepOpen) {
+    document.addEventListener('click', closeOnOutsideClick);
+  } else {
+    document.removeEventListener('click', closeOnOutsideClick);
+  }
+}
+
+function closeOnOutsideClick(event) {
+  if (isCalendarOpen.value && !props.keepOpen && dateRangePickerRef.value && !dateRangePickerRef.value.contains(event.target)) {
+    isCalendarOpen.value = false;
+    document.removeEventListener('click', closeOnOutsideClick);
+  }
 }
 
 function prevMonths() {
@@ -242,6 +258,8 @@ function selectDay(year, month, day) {
 
   emit('update:modelValue', {start: newStart, end: newEnd});
   clearHover();
+  isCalendarOpen.value = false;
+  document.removeEventListener('click', closeOnOutsideClick);
 }
 
 
@@ -341,17 +359,11 @@ onMounted(() => {
   }
   currentMonth.value.setDate(1);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeOnOutsideClick);
+});
 </script>
 
 <style scoped>
-/* DaisyUI já cuida da maioria, mas ajustamos o posicionamento do dropdown */
-.dropdown-content {
-  position: absolute;
-  /* Garante que o calendário fique acima de outros elementos */
-  z-index: 100;
-}
-
-/* Estilo para garantir que o contêiner do calendário ajuste o layout */
-.calendar-container {
-}
 </style>

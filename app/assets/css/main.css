@@ -4,6 +4,15 @@
     themes: light --default, dark --prefersdark, cupcake;
 }
 
+
+.input-error {
+    @apply border-error focus:ring-error;
+}
+
+.label {
+    @apply text-xs mt-1;
+}
+
 /*@theme {*/
 /*    --breakpoint-lg: 50rem;*/
 /*    --breakpoint-xs: 30rem;*/
