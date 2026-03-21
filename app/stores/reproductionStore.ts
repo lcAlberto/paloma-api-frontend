@@ -7,6 +7,7 @@ export const useReproductionStore = defineStore('reproduction', {
   state: () => ({
     reproductions: [] as Array<{ id: number; type: string; date: string }>,
     reproduction: null as { id: number; type: string; date: string } | null,
+    donors: [],
     pagination: {} as Pagination,
     formErrors: {} as Record<string, string[]>,
     reproductionCreateInfo: {} as ReproductiveCycleData,
@@ -17,6 +18,7 @@ export const useReproductionStore = defineStore('reproduction', {
       creatingReproduction: false,
       editingReproduction: false,
       deletingReproduction: false,
+      fetchingSemenDonor: false,
     },
   }),
   // getters: {
@@ -222,6 +224,29 @@ export const useReproductionStore = defineStore('reproduction', {
     clearReproductionCreateInfo() {
       this.reproductionCreateInfo = {} as ReproductiveCycleData;
       this.openModalReproductionInfo = false;
+    },
+
+    async fetchSemenDonors() {
+      const uiStore = useUiStore();
+      try {
+        this.loading.fetchingSemenDonor = true;
+        const {$api} = useNuxtApp();
+        const {results} = await $api(`/donors/`, {
+          method: 'GET',
+          // params,
+        });
+        this.donors = results
+      } catch (e) {
+        uiStore.setToast({
+          type: 'error',
+          message: 'Failed to fetch donnor list.',
+          title: 'Error.',
+          delay: 5000
+        });
+        console.error('Error to fetch donor: ', e)
+      } finally {
+        this.loading.fetchingSemenDonor = false;
+      }
     }
-  }
+  },
 });

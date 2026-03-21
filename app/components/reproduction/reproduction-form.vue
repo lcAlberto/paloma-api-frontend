@@ -3,7 +3,21 @@
     <div class="grid content-start  md:grid-cols-1 lg:grid-cols-2 gap-5">
       <!--    COL 1-->
       <fieldset class="p-2">
-        <legend class="fieldset-legend uppercase">Quando o ocorreu?</legend>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">
+            Fêmea
+            <sup class="text-error">*</sup>
+          </legend>
+          <input-select
+              v-model="form.female_animal_id"
+              :error-message="femaleAnimalIdError"
+              :items="animalStore.mothers"
+              :loading="animalStore.loading.fetchingAnimalStatus || store.loading.creatingReproduction || localLogin"
+              clearable
+              option-label="name"
+              option-value="id"
+          />
+        </fieldset>
         <fieldset class="fieldset">
           <legend class="fieldset-legend">
             Data de Início do Cio
@@ -33,83 +47,97 @@
               label="Data da Cobertura"
           />
         </fieldset>
-
-        <fieldset class="fieldset">
-          <legend class="fieldset-legend">
-            Tipo da cobertura
-            <sup class="text-error">*</sup>
-          </legend>
-          <small class="">
-            Se a cobertura de seu apartir de um touro da fazenda, você pode já atrelar ele á esse ciclo.
-            Mas se foi por inseminação artificial, você pode cadastar o touro doador de sêmen depois.
-          </small>
-          <div class="filter flex w-full">
-            <input
-                v-model="form.mating_type"
-                :value="undefined"
-                aria-label="All"
-                class="btn border-white/10 filter-reset"
-                name="mating_type"
-                type="radio"
-            >
-            <input
-                v-model="form.mating_type"
-                aria-label="Natural"
-                class="btn border-white/10"
-                name="mating_type"
-                type="radio"
-                value="natural"
-            >
-            <input
-                v-model="form.mating_type"
-                aria-label="Artificial"
-                class="btn border-white/10"
-                name="mating_type"
-                type="radio"
-                value="artificial"
-            >
-          </div>
-          <span
-              v-if="matingTypeError"
-              class="label-text-alt text-error"
-          >{{ matingTypeError }}</span>
-        </fieldset>
       </fieldset>
 
       <div class="">
         <fieldset class="p-2">
-          <legend class="fieldset-legend uppercase">Filiação</legend>
-          <!--      MOTHER-->
           <fieldset class="fieldset">
             <legend class="fieldset-legend">
-              Mãe
+              Tipo da cobertura
               <sup class="text-error">*</sup>
             </legend>
-            <input-select
-                v-model="form.female_animal_id"
-                :error-message="femaleAnimalIdError"
-                :items="animalStore.mothers"
-                :loading="animalStore.loading.fetchingAnimalStatus || store.loading.creatingReproduction || localLogin"
-                clearable
-                option-label="name"
-                option-value="id"
-            />
+            <small class="">
+              Se a cobertura de seu apartir de um touro da fazenda, você pode já atrelar ele á esse ciclo.
+              Mas se foi por inseminação artificial, você pode cadastar o touro doador de sêmen depois.
+            </small>
+            <div class="filter flex w-full">
+              <input
+                  v-model="form.mating_type"
+                  :value="undefined"
+                  aria-label="All"
+                  class="btn border-white/10 filter-reset"
+                  name="mating_type"
+                  type="radio"
+              >
+              <input
+                  v-model="form.mating_type"
+                  aria-label="Natural"
+                  class="btn border-white/10"
+                  name="mating_type"
+                  type="radio"
+                  value="natural"
+              >
+              <input
+                  v-model="form.mating_type"
+                  aria-label="Artificial"
+                  class="btn border-white/10"
+                  name="mating_type"
+                  type="radio"
+                  value="artificial"
+              >
+            </div>
+            <span
+                v-if="matingTypeError"
+                class="label-text-alt text-error"
+            >{{ matingTypeError }}</span>
           </fieldset>
           <!--      FATHER -->
-          <fieldset class="fieldset">
+          <fieldset
+              v-if="form.mating_type === 'natural'"
+              class="fieldset"
+          >
             <legend class="fieldset-legend">
-              Pai
+              Macho
+            </legend>
+            <span>Selecione o animal se ele for conhecido e já tem cadastro. Ou crie um novo registro</span>
+            <div class="flex gap-3">
+              <input-select
+                  v-model="form.male_animal_id"
+                  :error-message="maleAnimalIdError"
+                  :items="animalStore.fathers"
+                  :loading="animalStore.loading.fetchingAnimalStatus || store.loading.creatingReproduction || localLogin"
+                  clearable
+                  option-label="name"
+                  option-value="id"
+              />
+              <button class="btn btn-primary">
+                <i class="fa fa-plus"/>
+              </button>
+            </div>
+          </fieldset>
+
+          <fieldset
+              v-else-if="form.mating_type === 'artificial'"
+              class="fieldset"
+          >
+            <legend class="fieldset-legend">
+              Doador
               <sup class="text-error">*</sup>
             </legend>
-            <input-select
-                v-model="form.male_animal_id"
-                :error-message="maleAnimalIdError"
-                :items="animalStore.fathers"
-                :loading="animalStore.loading.fetchingAnimalStatus || store.loading.creatingReproduction || localLogin"
-                clearable
-                option-label="name"
-                option-value="id"
-            />
+            <div class="flex gap-3">
+              <input-select
+                  v-model="form.semen_donor_id"
+                  :error-message="maleAnimalIdError"
+                  :items="store.donors"
+                  :loading="store.loading.fetchingSemenDonor"
+                  clearable
+                  option-label="name"
+                  option-value="id"
+              />
+              <button class="btn btn-primary">
+                <i class="fa fa-plus"/>
+              </button>
+            </div>
           </fieldset>
 
           <fieldset class="fieldset">
@@ -200,6 +228,7 @@ const form = ref({
   calf_born_id: null,
   female_animal_id: null,
   male_animal_id: null,
+  semen_donor_id: null,
 })
 const localLogin = ref(false)
 
@@ -237,6 +266,7 @@ onMounted(() => {
   animalStore.fetchParents('male')
   animalStore.fetchParents('female')
   animalStore.fetchAnimals()
+  store.fetchSemenDonors()
 
   if (props.old) {
     form.value = props.old
